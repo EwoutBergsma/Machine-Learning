@@ -2,7 +2,7 @@ from jits.intersection import Intersection
 from jits.border_node import BorderNode
 from random import randint
 
-
+# Map class, contains all nodes and connections between them.
 class Map:
 	def __init__(self):
 		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
@@ -44,6 +44,10 @@ class Map:
 			if border.name == name:
 				return border
 		return None
+
+	def update_cars(self):
+		for intersection in self.intersections:
+			intersection.update()
 
 	def spawn_car(self, path):
 		index = randint(0, len(self.borders)-1)

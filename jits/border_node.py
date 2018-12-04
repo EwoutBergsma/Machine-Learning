@@ -1,6 +1,7 @@
 from jits.node import Node
 from jits.car import Car
 
+
 # Node that exists on the edge of the system. From this point cars enter/leave the environment.
 # Connects to one intersection
 class BorderNode(Node):
@@ -12,8 +13,11 @@ class BorderNode(Node):
 		self.connection = neighbour
 
 	def spawn_car(self, path):
-		car = Car(path)
-		self.connection.push_to_queue(car)
+		self.connection.push_to_queue(self, Car(path))
+
+	@staticmethod
+	def car_leaves_system(car):
+		Car.removed_cars += 1
 
 	def __str__(self):
 		return "Border node: " + super().__str__()
