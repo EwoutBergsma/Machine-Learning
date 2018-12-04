@@ -1,15 +1,15 @@
 import sys
 import random
-from jits.map import Map
-from jits.car import Car
-from jits.paths import path_dict
+from map import Map
+from car import Car
+from paths import path_dict
 
 
 def main(argv):
-	max_q_size = 100
+	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 10000
+	n_time_steps = 1000
 
 	prev_disappeared_cars = 0
 	prev_random_dirs = 0
@@ -33,6 +33,7 @@ def main(argv):
 
 		traffic_map.update_cars(t)
 		# traffic_map.print_status()
+		traffic_map.display_map()
 
 	n_cars = Car.get_number_of_cars(Car)
 	print("{0} cars were added to the system, {1} cars have left the system".format(n_cars[0], n_cars[1]))

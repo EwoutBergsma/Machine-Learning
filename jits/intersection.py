@@ -1,5 +1,5 @@
-from jits.node import Node
-from jits.car_queue import CarQueue
+from node import Node
+from car_queue import CarQueue
 
 
 # Intersection node, connects to four other nodes in each direction
@@ -43,6 +43,12 @@ class Intersection(Node):
 					car.put_direction_back(direction)
 					if not q.add_car_back(car):  # car is added back to queue
 						print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+
+	def count_cars_at(self, origin_str):
+		for index in range(len((self.neighbours))):
+			if self.neighbours[index].name == origin_str:
+				return self.qs[index].number_of_cars()
+
 
 	def number_of_cars(self):
 		cars = 0

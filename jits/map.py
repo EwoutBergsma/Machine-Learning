@@ -1,5 +1,5 @@
-from jits.intersection import Intersection
-from jits.border_node import BorderNode
+from intersection import Intersection
+from border_node import BorderNode
 from random import randint
 
 # Map class, contains all nodes and connections between them.
@@ -77,3 +77,40 @@ class Map:
 			print(intersection)
 		for border in self.borders:
 			print(border)
+
+	def cars_at(self, origin_str, destination_str):
+		for intersection in self.intersections:
+			if intersection.name == destination_str:
+				cars = intersection.count_cars_at(origin_str)
+				if cars < 1000:
+					if cars < 100:
+						if cars < 10:
+							return "00" + str(cars)
+						return "0" + str(cars)
+					return cars
+				return 999
+		if origin_str == destination_str:
+			for border in self.borders:
+				if border.name == destination_str:
+					cars = border.number_of_cars()
+					if cars < 1000:
+						if cars < 100:
+							if cars < 10:
+								return "00" + str(cars)
+							return "0" + str(cars)
+						return cars
+					return 999
+		return "000"
+
+
+	def display_map(self):
+		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))
+		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "A"), self.cars_at("A", "I")))
+		print("000|000           {0}          {1}|{2}".format(self.cars_at("B", "A"), self.cars_at("IV", "B"), self.cars_at("IV", "IV")))
+		print("{0}|{1}           {2}          000|000".format(self.cars_at("III", "III"), self.cars_at("III", "A"), self.cars_at("A", "B")))
+		print("        {0}  {1}       {2}  {3}      ".format(self.cars_at("A", "C"), self.cars_at("C", "A"), self.cars_at("B", "D"), self.cars_at("D", "B")))
+		print("000|000           {0}          {1}|{2}".format(self.cars_at("D", "C"), self.cars_at("VI", "D"), self.cars_at("VI", "VI")))
+		print("{0}|{1}           {2}          000|000".format(self.cars_at("V", "V"), self.cars_at("V", "C"), self.cars_at("C", "D")))
+		print("        000  {0}       000  {1}       ".format(self.cars_at("VII", "C"), self.cars_at("VIII", "D")))
+		print("        000  {0}       000  {1}       ".format(self.cars_at("VII", "VII"), self.cars_at("VIII", "VIII")))
+		print("------------------------------------")

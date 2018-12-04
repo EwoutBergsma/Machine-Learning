@@ -1,6 +1,6 @@
-from jits.node import Node
-from jits.car import Car
-from jits.car_queue import CarQueue
+from node import Node
+from car import Car
+from car_queue import CarQueue
 
 
 # Node that exists on the edge of the system. From this point cars enter/leave the environment.
