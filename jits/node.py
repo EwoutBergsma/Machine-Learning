@@ -18,9 +18,9 @@ class Node:
 
 	def transfer_car(self, origin, car):
 		if self.type == "intersection":
-			self.push_to_queue(origin, car)
+			return self.push_to_queue(origin, car)
 		if self.type == "border":
-			self.car_leaves_system(car)
+			return self.car_leaves_system(car)
 
 	def __str__(self):
 		return self.name

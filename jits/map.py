@@ -4,7 +4,7 @@ from random import randint
 
 # Map class, contains all nodes and connections between them.
 class Map:
-	def __init__(self):
+	def __init__(self, max_q_size):
 		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
 		intersection_names = ["A", "B", "C", "D"]
 		self.intersections = []
@@ -12,7 +12,7 @@ class Map:
 		for name in border_names:
 			self.borders.append(BorderNode(name))
 		for name in intersection_names:
-			self.intersections.append(Intersection(name))
+			self.intersections.append(Intersection(name, max_q_size))
 		self.set_connections()
 
 	def set_connections(self):
@@ -48,7 +48,17 @@ class Map:
 	def update_cars(self):
 		for intersection in self.intersections:
 			intersection.update()
+		for border in self.borders:
+			border.update()
 
 	def spawn_car(self, path):
 		index = randint(0, len(self.borders)-1)
 		self.borders[index].spawn_car(path)
+
+	def number_of_cars(self):
+		cars = 0
+		for intersection in self.intersections:
+			cars += intersection.number_of_cars()
+		for border in self.borders:
+			cars += border.number_of_cars()
+		return cars

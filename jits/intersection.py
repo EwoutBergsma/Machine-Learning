@@ -4,17 +4,20 @@ from jits.car_queue import CarQueue
 
 # Intersection node, connects to four other nodes in each direction
 class Intersection(Node):
-	def __init__(self, name):
+	def __init__(self, name, max_q_size):
 		super().__init__(name, "intersection")
 		self.neighbours = [None, None, None, None]  # north, east, south, west
-		self.qs = [CarQueue(), CarQueue(), CarQueue(), CarQueue()]  # north, east, south, west
+		self.qs = [CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size)]
 
 	def set_connections(self, north, east, south, west):
 		self.neighbours = [north, east, south, west]
 
 	def push_to_queue(self, origin, car):
 		dir = self.get_direction(origin)
-		self.qs[dir].add_car(car)
+		if self.qs[dir].add_car(car):
+			return True
+		else:  # the queue of the direction it wants to go to is full
+			return False
 
 	def get_direction(self, origin):
 		for i in range(4):
@@ -29,9 +32,17 @@ class Intersection(Node):
 
 	def move_car(self, q):
 		car = q.get_car()
-		if not car is None:
+		if car is not None:
 			dir = car.get_direction()
-			self.neighbours[dir].transfer_car(self, car)
+			if not self.neighbours[dir].transfer_car(self, car):
+				if not q.add_car_back(car):
+					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+
+	def number_of_cars(self):
+		cars = 0
+		for q in self.qs:
+			cars += q.number_of_cars()
+		return cars
 
 	def __str__(self):
 		return "Intersection: " + super().__str__()
