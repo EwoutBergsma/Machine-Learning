@@ -13,8 +13,8 @@ class Intersection(Node):
 		self.neighbours = [north, east, south, west]
 
 	def push_to_queue(self, origin, car):
-		dir = self.get_direction(origin)
-		if self.qs[dir].add_car(car):
+		direction = self.get_direction(origin)
+		if self.qs[direction].add_car(car):
 			return True
 		else:  # the queue of the direction it wants to go to is full
 			return False
@@ -26,17 +26,23 @@ class Intersection(Node):
 		print("Origin {0} is not a neighbouring node of {1}".format(origin, self))
 		return None
 
-	def update(self):
+	def update(self, time_step):
 		for q in self.qs:
-			self.move_car(q)
+			self.move_car(q, time_step)
 
-	def move_car(self, q):
-		car = q.get_car()
-		if car is not None:
-			dir = car.get_direction()
-			if not self.neighbours[dir].transfer_car(self, car):
-				if not q.add_car_back(car):
+	def move_car(self, q, time_step):
+		car = q.get_car()  # pop car from queue
+		if car is not None:  # there was a car in the queue
+			if time_step == car.get_last_move():
+				if not q.add_car_back(car):  # car is added back to queue
 					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+			else:
+				direction = car.get_direction(time_step)  # first direction of the car
+				if not self.neighbours[direction].transfer_car(self, car):
+					# car has already moved or car could not be moved towards its direction
+					car.put_direction_back(direction)
+					if not q.add_car_back(car):  # car is added back to queue
+						print("CAR COULD NOT BE ADDED BACK TO QUEUE")
 
 	def number_of_cars(self):
 		cars = 0
@@ -45,4 +51,4 @@ class Intersection(Node):
 		return cars
 
 	def __str__(self):
-		return "Intersection: " + super().__str__()
+		return "Intersection: " + super().__str__() + " has {0} cars".format(self.number_of_cars())

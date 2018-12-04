@@ -45,11 +45,11 @@ class Map:
 				return border
 		return None
 
-	def update_cars(self):
+	def update_cars(self, time_step):
 		for intersection in self.intersections:
-			intersection.update()
+			intersection.update(time_step)
 		for border in self.borders:
-			border.update()
+			border.update(time_step)
 
 	def get_index(self, path_key):
 		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
@@ -71,3 +71,9 @@ class Map:
 		for border in self.borders:
 			cars += border.number_of_cars()
 		return cars
+
+	def print_status(self):
+		for intersection in self.intersections:
+			print(intersection)
+		for border in self.borders:
+			print(border)
