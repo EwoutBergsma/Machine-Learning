@@ -51,8 +51,17 @@ class Map:
 		for border in self.borders:
 			border.update()
 
-	def spawn_car(self, path):
-		index = randint(0, len(self.borders)-1)
+	def get_index(self, path_key):
+		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
+		index = 0
+		for border_name in border_names:
+			if border_name == path_key:
+				return index
+			index += 1
+
+	def spawn_car(self, path_key, path):
+		starting_point = path_key.split(":")[0]
+		index = self.get_index(starting_point)
 		self.borders[index].spawn_car(path)
 
 	def number_of_cars(self):

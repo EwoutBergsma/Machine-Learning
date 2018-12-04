@@ -1,6 +1,7 @@
 import sys
 from jits.map import Map
 from jits.car import Car
+from jits.paths import path_dict
 
 
 def main(argv):
@@ -25,9 +26,10 @@ def main(argv):
 
 
 def time_step(traffic_map):
-	n_cars = 50  # should not be greater than 8 (maximum number of cars to leave per time step)
+	n_cars = 5
 	for c in range(n_cars):
-		traffic_map.spawn_car([])
+		path_key = random.choice(list(path_dict.keys()))
+		traffic_map.spawn_car(path_key, path_dict[path_key])
 
 	traffic_map.update_cars()
 
