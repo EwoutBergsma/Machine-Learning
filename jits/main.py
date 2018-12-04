@@ -1,4 +1,5 @@
 import sys
+import random
 from jits.map import Map
 from jits.car import Car
 from jits.paths import path_dict
