@@ -1,13 +1,19 @@
 from node import Node
 from car_queue import CarQueue
+from traffic_light import TrafficLight
+from traffic_light_combinations import combinations
+from random import choice
+from state import State
 
 
 # Intersection node, connects to four other nodes in each direction
 class Intersection(Node):
-	def __init__(self, name, max_q_size):
-		super().__init__(name, "intersection")
+	def __init__(self, name, max_q_size, x, y):
+		super().__init__(name, "intersection", x, y)
 		self.neighbours = [None, None, None, None]  # north, east, south, west
 		self.qs = [CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size)]
+		self.traffic_lights = [TrafficLight(), TrafficLight(), TrafficLight(), TrafficLight()]
+		self.current_state = None
 
 	def set_connections(self, north, east, south, west):
 		self.neighbours = [north, east, south, west]
@@ -26,29 +32,46 @@ class Intersection(Node):
 		print("Origin {0} is not a neighbouring node of {1}".format(origin, self))
 		return None
 
-	def update(self, time_step):
-		for q in self.qs:
-			self.move_car(q, time_step)
+	def update_cars(self, time_step):
+		for i in range(4):
+			self.move_car(i, time_step)
 
-	def move_car(self, q, time_step):
+	def update_traffic_lights(self):
+		new_setup = choice(combinations)
+		for i in range(4):
+			self.traffic_lights[i].update(new_setup[i])
+
+	def move_car(self, i, time_step):
+		q = self.qs[i]
+		traffic_light = self.traffic_lights[i]
 		car = q.get_car()  # pop car from queue
 		if car is not None:  # there was a car in the queue
 			if time_step == car.get_last_move():
-				if not q.add_car_back(car):  # car is added back to queue
-					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+				# car has already moved
+				self.put_car_back(q, car)
 			else:
-				direction = car.get_direction(time_step)  # first direction of the car
-				if not self.neighbours[direction].transfer_car(self, car):
-					# car has already moved or car could not be moved towards its direction
-					car.put_direction_back(direction)
-					if not q.add_car_back(car):  # car is added back to queue
-						print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+				directions = car.get_directions(time_step, self.x, self.y)  # directions of the car
+				car_moved = False
+				for direction in directions:
+					# if traffic_light.red(i, direction) or not self.neighbours[direction].transfer_car(self, car):
+					neighbour = self.neighbours[direction]
+					if not neighbour.type == "border" or (neighbour.x == car.dest_x and neighbour.y == car.dest_y):
+						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
+							# car was moved towards direction
+							car_moved = True
+							break
+				if not car_moved:
+					self.put_car_back(q, car)
+
+	@staticmethod
+	def put_car_back(q, car):
+		if not q.add_car_back(car):  # car is added back to queue
+			print("CAR COULD NOT BE ADDED BACK TO QUEUE AT INTERSECTION")
 
 	def count_cars_at(self, origin_str):
-		for index in range(len((self.neighbours))):
+		for index in range(len(self.neighbours)):
 			if self.neighbours[index].name == origin_str:
 				return self.qs[index].number_of_cars()
-
 
 	def number_of_cars(self):
 		cars = 0

@@ -6,25 +6,24 @@ from car_queue import CarQueue
 # Node that exists on the edge of the system. From this point cars enter/leave the environment.
 # Connects to one intersection
 class BorderNode(Node):
-	def __init__(self, name):
-		super().__init__(name, "border")
+	def __init__(self, name, x, y):
+		super().__init__(name, "border", x, y)
 		self.connection = None
 		self.q = CarQueue(-1)  # -1 for no maximum q-size
 
 	def set_connection(self, neighbour):
 		self.connection = neighbour
 
-	def spawn_car(self, path):
-		self.q.add_car(Car(path))
+	def spawn_car(self, destination):
+		self.q.add_car(Car(destination))
 
-	def update(self, time_step):
+	def update_cars(self, time_step):
 		car = self.q.get_car()
 		if car is not None:
-			direction = car.get_direction(time_step)
+			directions = car.get_directions(time_step, self.x, self.y)
 			if not self.connection.transfer_car(self, car):
-				car.put_direction_back(direction)
 				if not self.q.add_car_back(car):  # car is added back to queue
-					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+					print("CAR COULD NOT BE ADDED BACK TO QUEUE AT BORDER")
 
 	def number_of_cars(self):
 		return self.q.number_of_cars()
