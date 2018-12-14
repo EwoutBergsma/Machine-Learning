@@ -15,7 +15,7 @@ def main(argv):
 
 	for t in tqdm(range(0, n_time_steps)):
 
-		add_cars(traffic_map)
+		time_step(traffic_map)
 
 		if t % 5 == 0:  # update traffic lights once every 5 time steps
 			traffic_map.update_traffic_lights()

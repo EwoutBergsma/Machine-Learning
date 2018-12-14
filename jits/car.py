@@ -15,7 +15,7 @@ class Car:
 		self.dest_x = destination[0]
 		self.dest_y = destination[1]
 
-		self.initial_path = path
+	       # self.initial_path = path
 		self.total_moves = 0
 		self.waiting_time = 0
 
