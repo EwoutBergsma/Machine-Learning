@@ -13,4 +13,5 @@ TODO
    - Cars entering the system
    - per-light wait times
  - Add waiting time for cars (to represent distance between nodes)
+ - Combinations of traffic lights
 
