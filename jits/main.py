@@ -8,10 +8,10 @@ from tqdm import tqdm
 
 def main(argv):
 
-	max_q_size = 30
+	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 200
+	n_time_steps = 10000
 
 	for t in tqdm(range(0, n_time_steps)):
 
@@ -31,11 +31,8 @@ def main(argv):
 	print("random dirs: " + str(Car.random_direction))
 
 
-def add_cars(traffic_map):
-	n_cars = 1
-
 def time_step(traffic_map):
-	n_cars = 10
+	n_cars = 2
 	for c in range(n_cars):
 		start = choice(border_names)
 		end = choice(border_names)

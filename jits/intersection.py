@@ -85,8 +85,8 @@ class Intersection(Node):
 	def move_car(self, i, time_step):
 		q = self.qs[i]
 		traffic_light = self.traffic_lights[i]
-		print(traffic_light.lights)
-		print("\n")
+		#print(traffic_light.lights)
+		#print("\n")
 		car = q.get_car()  # pop car from queue
 		if car is not None:  # there was a car in the queue
 			if time_step == car.get_last_move():
