@@ -1,3 +1,4 @@
+
 from random import choice
 
 class TrafficLight:
@@ -40,4 +41,4 @@ class TrafficLight:
 		print("traffic_light.direction failed. Origin: {0}, destination: {1}".format(origin, destination))
 		return -1
 
-
+		

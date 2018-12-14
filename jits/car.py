@@ -7,11 +7,21 @@ class Car:
 	removed_cars = 0
 	random_direction = 0
 
+
 	def __init__(self, destination):
 		Car.added_cars += 1
 		self.last_move = -1
+
 		self.dest_x = destination[0]
 		self.dest_y = destination[1]
+
+		self.initial_path = path
+		self.total_moves = 0
+		self.waiting_time = 0
+
+	def make_queue(self, path):
+		for direction in path:
+			self.path_q.appendleft(direction)
 
 	def get_number_of_cars(self):
 		return [self.added_cars, self.removed_cars]
@@ -38,6 +48,9 @@ class Car:
 
 	def get_last_move(self):
 		return self.last_move
+
+	def put_direction_back(self, direction):
+		self.path_q.append(direction)
 
 	def reset_waiting_time(self):
 		self.waiting_time = 0
