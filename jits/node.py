@@ -1,7 +1,9 @@
 class Node:
-	def __init__(self, name, type):
+	def __init__(self, name, type, x, y):
 		self.name = name
 		self.type = type
+		self.x = x
+		self.y = y
 
 	def is_intersection(self):
 		if self.type == "intersection":
@@ -12,6 +14,9 @@ class Node:
 		if self.type == "border":
 			return True
 		return False
+
+	def get_position(self):
+		return [self.x, self.y]
 
 	def get_type(self):
 		return self.type
