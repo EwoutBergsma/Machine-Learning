@@ -29,3 +29,13 @@ class CarQueue:
 	def number_of_cars(self):
 		return len(self.q)
 
+	def iterate_queue(self):
+		car_waiting_times = []
+		total_waiting_time = 0
+		for car in self.q:
+			waiting_time = car.get_waiting_time()
+			car_waiting_times.append(waiting_time)
+			total_waiting_time += waiting_time
+		return total_waiting_time
+
+

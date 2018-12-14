@@ -38,3 +38,12 @@ class Car:
 
 	def get_last_move(self):
 		return self.last_move
+
+	def reset_waiting_time(self):
+		self.waiting_time = 0
+
+	def increment_waiting_time(self):
+		self.waiting_time += 1
+
+	def get_waiting_time(self):
+		return self.waiting_time
