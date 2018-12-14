@@ -8,15 +8,12 @@ class Car:
 	random_direction = 0
 
 	def __init__(self, path):
-
 		Car.added_cars += 1
 		self.path_q = deque()
 		self.make_queue(path)
 		self.last_move = -1
 
 		self.initial_path = path
-		self.total_moves = 0
-		self.waiting_time = 0
 
 	def make_queue(self, path):
 		for direction in path:
@@ -38,12 +35,3 @@ class Car:
 
 	def put_direction_back(self, direction):
 		self.path_q.append(direction)
-
-	def reset_waiting_time(self):
-		self.waiting_time = 0
-
-	def increment_waiting_time(self):
-		self.waiting_time += 1
-
-	def get_waiting_time(self):
-		return self.waiting_time

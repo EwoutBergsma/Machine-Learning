@@ -6,10 +6,10 @@ from paths import path_dict
 
 
 def main(argv):
-	max_q_size = 30
+	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 200
+	n_time_steps = 1000
 
 	prev_disappeared_cars = 0
 	prev_random_dirs = 0
@@ -43,7 +43,7 @@ def main(argv):
 
 
 def time_step(traffic_map):
-	n_cars = 10
+	n_cars = 6
 	for c in range(n_cars):
 		path_key = random.choice(list(path_dict.keys()))
 		traffic_map.spawn_car(path_key, path_dict[path_key])
