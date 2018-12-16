@@ -1,10 +1,12 @@
-from node import Node
-from car_queue import CarQueue
-from traffic_light import TrafficLight
-from traffic_light_combinations import combinations
-from random import choice
-from state import State
 
+from model import *
+from actor import *
+from dictionaries import *
+from random import choice
+from map.node import Node
+from model.car_queue import CarQueue
+from actor.traffic_light import TrafficLight
+from dictionaries.traffic_light_combinations import combinations
 
 # Intersection node, connects to four other nodes in each direction
 class Intersection(Node):
@@ -155,3 +157,4 @@ class Intersection(Node):
 		for q in self.qs:
 			cars = q.iterate_queue()
 			print(cars)
+	

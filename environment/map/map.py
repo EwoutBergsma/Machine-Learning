@@ -1,6 +1,6 @@
-from intersection import Intersection
-from border_node import BorderNode
-from nodes import border_data, intersection_data
+from actor.intersection import Intersection
+from map.border_node import BorderNode
+from dictionaries.nodes import border_data, intersection_data
 
 # Map class, contains all nodes and connections between them.
 class Map:

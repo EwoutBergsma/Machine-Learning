@@ -1,6 +1,6 @@
-from node import Node
-from car import Car
-from car_queue import CarQueue
+from map.node import Node
+from model.car import Car
+from model.car_queue import CarQueue
 
 
 # Node that exists on the edge of the system. From this point cars enter/leave the environment.
