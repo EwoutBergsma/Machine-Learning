@@ -15,9 +15,10 @@ class Car:
 		self.dest_x = destination[0]
 		self.dest_y = destination[1]
 
-	       # self.initial_path = path
+		# self.initial_path = path
 		self.total_moves = 0
 		self.waiting_time = 0
+		self.distance_between_nodes = 10
 
 	def make_queue(self, path):
 		for direction in path:
@@ -46,14 +47,19 @@ class Car:
 			directions = [b, a]
 		return directions
 
-	def get_last_move(self):
-		return self.last_move
+	# def get_last_move(self):
+	# 	return self.last_move
 
 	def put_direction_back(self, direction):
 		self.path_q.append(direction)
 
 	def reset_waiting_time(self):
 		self.waiting_time = 0
+
+	def can_move(self, time_step):
+		if time_step >= (self.last_move + self.distance_between_nodes):
+			return True
+		return False
 
 	def increment_waiting_time(self):
 		self.waiting_time += 1

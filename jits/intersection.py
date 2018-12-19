@@ -74,13 +74,10 @@ class Intersection(Node):
 
 		"""
 
-
-
 	def update_traffic_lights(self):
 		new_setup = choice(combinations)
 		for i in range(4):
 			self.traffic_lights[i].update(new_setup[i])
-
 
 	def move_car(self, i, time_step):
 		q = self.qs[i]
@@ -89,9 +86,9 @@ class Intersection(Node):
 		#print("\n")
 		car = q.get_car()  # pop car from queue
 		if car is not None:  # there was a car in the queue
-			if time_step == car.get_last_move():
+			if not car.can_move(time_step):
 				# car has already moved
-				self.put_car_back(q, car)
+				self.put_car_back(q, car, time_step)
 			else:
 				directions = car.get_directions(time_step, self.x, self.y)  # directions of the car
 				car_moved = False
@@ -104,15 +101,13 @@ class Intersection(Node):
 							car_moved = True
 							break
 				if not car_moved:
-					self.put_car_back(q, car)
+					self.put_car_back(q, car, time_step)
 
-	@staticmethod
-	def put_car_back(q, car):
+	def put_car_back(self, q, car, time_step):
 		if not q.add_car_back(car):  # car is added back to queue
 			print("CAR COULD NOT BE ADDED BACK TO QUEUE AT INTERSECTION")
 
-			if time_step == car.get_last_move(): #car was  already moved. do not make it  move another  time.
-
+			if not car.can_move(time_step): #car was  already moved. do not make it  move another  time.
 				if not q.add_car_back(car):  # car is added back to queue
 					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
 			else: #try to move car
