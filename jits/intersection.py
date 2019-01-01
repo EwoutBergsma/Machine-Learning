@@ -37,53 +37,18 @@ class Intersection(Node):
 		return None
 
 	def update_cars(self, time_step):
-	#	counter = 0
-
 		for i in range(4):
-
-
-		#	print(counter)
-		#	counter += 1
 			self.move_car(i, time_step)
-
-
-
-
-		"""
-		index = 0
-		for i in range(4):
-			
-			if index <= 5:
-				self.move_car(i, time_step)
-
-	def update(self, time_step):
-
-		index = 0
-		for q in self.qs:
-			
-			if index <= 5:
-				self.move_car(q, time_step)
-
-			else:
-				car.increment_waiting_time()
-			index += 1
-
-		waiting_time = self.get_total_waiting_time()
-		print(waiting_time)
-		self.reward=0
-
-		"""
 
 	def update_traffic_lights(self):
 		new_setup = choice(combinations)
 		for i in range(4):
 			self.traffic_lights[i].update(new_setup[i])
+			
 
 	def move_car(self, i, time_step):
 		q = self.qs[i]
 		traffic_light = self.traffic_lights[i]
-		#print(traffic_light.lights)
-		#print("\n")
 		car = q.get_car()  # pop car from queue
 		if car is not None:  # there was a car in the queue
 			if not car.can_move(time_step):
@@ -99,14 +64,17 @@ class Intersection(Node):
 						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
 							# car was moved towards direction
 							car_moved = True
+							car.reset_waiting_time() # reset the waiting time since the car has moved
+							self.reward +=1 #a car passing trough is a reward for the intersection
 							break
+
 				if not car_moved:
 					self.put_car_back(q, car, time_step)
 
 	def put_car_back(self, q, car, time_step):
+		car.increment_waiting_time() # increment the waiting time for the car 	
 		if not q.add_car_back(car):  # car is added back to queue
 			print("CAR COULD NOT BE ADDED BACK TO QUEUE AT INTERSECTION")
-
 			if not car.can_move(time_step): #car was  already moved. do not make it  move another  time.
 				if not q.add_car_back(car):  # car is added back to queue
 					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
@@ -115,13 +83,14 @@ class Intersection(Node):
 				if not self.neighbours[direction].transfer_car(self, car):
 					# car has already moved or car could not be moved towards its direction
 					car.put_direction_back(direction)
-					car.increment_waiting_time()
+
 					if not q.add_car_back(car):  # car is added back to queue
 						print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+				"""
 				else: #car was  moved  successfully to next queue
 					self.reward +=1 #a car passing trough is  a reqard for the intersection
-					car.reset_waiting_time() 
-
+					car.reset_waiting_time()
+				"""
 
 	def count_cars_at(self, origin_str):
 		for index in range(len(self.neighbours)):
@@ -135,18 +104,11 @@ class Intersection(Node):
 		return cars
 
 	def get_total_waiting_time(self):
-		#for index in range(len(self.))
 		total_waiting_time = 0
 		for q in self.qs:
-			cars = q.iterate_queue()
-			print(cars)
+			q_waiting_time = q.iterate_queue()
+			print(q_waiting_time)
+		print("\n")
 
 	def __str__(self):
 		return "Intersection: " + super().__str__() + " has {0} cars".format(self.number_of_cars())
-
-	def get_total_waiting_time(self):
-		#for index in range(len(self.))
-		total_waiting_time = 0
-		for q in self.qs:
-			cars = q.iterate_queue()
-			print(cars)

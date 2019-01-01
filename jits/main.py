@@ -8,16 +8,16 @@ from tqdm import tqdm
 
 def main(argv):
 
-	max_q_size = 500000
+	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 1000000
+	n_time_steps = 1000
 
 	for t in tqdm(range(0, n_time_steps)):
 
 		time_step(traffic_map)
 
-		if t % 5 == 0:  # update traffic lights once every 5 time steps
+		if t % 10 == 0:  # update traffic lights once every 10 time steps
 			traffic_map.update_traffic_lights()
 		traffic_map.update_cars(t)
 
