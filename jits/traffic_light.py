@@ -2,9 +2,11 @@
 from random import choice
 
 class TrafficLight:
+	maxQueueSize = 30
 	def __init__(self):
 		# False = red, True = green
 		self.lights = [False, False, False]  # left, straigh ahead, right
+
 
 	def update(self, setup):
 		for i in range(3):
