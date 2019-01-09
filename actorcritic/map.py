@@ -1,19 +1,29 @@
 from intersection import Intersection
 from border_node import BorderNode
-from random import randint
+from nodes import border_data, intersection_data
+from global_traffic_light_combinations import combinations
 
+import numpy as np
 # Map class, contains all nodes and connections between them.
 class Map:
 	def __init__(self, max_q_size):
-		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
-		intersection_names = ["A", "B", "C", "D"]
 		self.intersections = []
 		self.borders = []
-		for name in border_names:
-			self.borders.append(BorderNode(name))
-		for name in intersection_names:
-			self.intersections.append(Intersection(name, max_q_size))
+		for border in border_data:
+			self.borders.append(BorderNode(border[0], border[1], border[2]))
+		for intersection in intersection_data:
+			self.intersections.append(Intersection(intersection[0], max_q_size, intersection[1], intersection[2]))
 		self.set_connections()
+		self.global_state = []
+		self.global_reward = 0
+
+		# self.action_space = combinations
+		# self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+		# self.observation_space = 
+		#self.action_size = 7
+		self.action_size = 210
+		#self.state_size = 8
+		self.state_size = 32
 
 	def set_connections(self):
 		self.connect_intersection("A", "I", "B", "C", "III")
@@ -47,11 +57,23 @@ class Map:
 
 	def update_cars(self, time_step):
 		for intersection in self.intersections:
-			intersection.update(time_step)
+			intersection.update_cars(time_step)
 		for border in self.borders:
-			border.update(time_step)
+			border.update_cars(time_step)
 
-	def get_index(self, path_key):
+	def update_traffic_lights(self,action):
+		#action = choice(combinations)
+		for index,intersection in enumerate(self.intersections):
+			#single_action = choice(combinations)
+			#print("SINGLE ACTION: ")
+			#print(single_action)
+			intersection.update_traffic_lights(action[index])
+			#action.append(single_action)
+
+		#self.step(action)
+
+	@staticmethod
+	def get_index(path_key):
 		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
 		index = 0
 		for border_name in border_names:
@@ -59,10 +81,11 @@ class Map:
 				return index
 			index += 1
 
-	def spawn_car(self, path_key, path):
-		starting_point = path_key.split(":")[0]
+	def spawn_car(self, start, end):
+		starting_point = start
+		end_position = self.borders[self.get_index(end)].get_position()
 		index = self.get_index(starting_point)
-		self.borders[index].spawn_car(path)
+		self.borders[index].spawn_car(end_position)
 
 	def number_of_cars(self):
 		cars = 0
@@ -102,15 +125,42 @@ class Map:
 					return 999
 		return "000"
 
+	def reset(self):
+		#print("resetting")
+		for intersection in self.intersections:
+			intersection.reset()
+		for border in self.borders:
+			border.reset()
+		#state = [0,0,0,0,0,0,0,0]
+		state = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+		return state
+
+	def step(self,action):
+
+		a = combinations[action]
+		#print(a)
+		self.update_traffic_lights(a)
+		#print(a)
+		global_state = []
+		global_reward = 0
+	#	self.model_reward = self.episode_reward
+		#self.state = self.get_intersection_state()
+		for index,intersection in enumerate(self.intersections):
+			state,reward = (intersection.step(a[index]))
+			global_state.extend(state)
+			global_reward += reward
+		done = True
+		#print(global_state, global_reward, "\n")
+		return np.array(global_state),global_reward, done, {}
 
 	def display_map(self):
 		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))
-		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "A"), self.cars_at("A", "I")))
-		print("000|000           {0}          {1}|{2}".format(self.cars_at("B", "A"), self.cars_at("IV", "B"), self.cars_at("IV", "IV")))
-		print("{0}|{1}           {2}          000|000".format(self.cars_at("III", "III"), self.cars_at("III", "A"), self.cars_at("A", "B")))
+		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "A"), self.cars_at("II", "B")))
+		print("000|000           {0}           {1}|{2}".format(self.cars_at("B", "A"), self.cars_at("IV", "B"), self.cars_at("IV", "IV")))
+		print("{0}|{1}           {2}           000|000".format(self.cars_at("III", "III"), self.cars_at("III", "A"), self.cars_at("A", "B")))
 		print("        {0}  {1}       {2}  {3}      ".format(self.cars_at("A", "C"), self.cars_at("C", "A"), self.cars_at("B", "D"), self.cars_at("D", "B")))
-		print("000|000           {0}          {1}|{2}".format(self.cars_at("D", "C"), self.cars_at("VI", "D"), self.cars_at("VI", "VI")))
-		print("{0}|{1}           {2}          000|000".format(self.cars_at("V", "V"), self.cars_at("V", "C"), self.cars_at("C", "D")))
+		print("000|000           {0}           {1}|{2}".format(self.cars_at("D", "C"), self.cars_at("VI", "D"), self.cars_at("VI", "VI")))
+		print("{0}|{1}           {2}           000|000".format(self.cars_at("V", "V"), self.cars_at("V", "C"), self.cars_at("C", "D")))
 		print("        000  {0}       000  {1}       ".format(self.cars_at("VII", "C"), self.cars_at("VIII", "D")))
 		print("        000  {0}       000  {1}       ".format(self.cars_at("VII", "VII"), self.cars_at("VIII", "VIII")))
 		print("------------------------------------")

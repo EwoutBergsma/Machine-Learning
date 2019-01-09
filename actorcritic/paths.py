@@ -1,3 +1,5 @@
+border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
+
 path_dict = {"I:II": [2,1,0],
 			"I:III": [2,3],
 			"I:IV": [2,1,1],
