@@ -2,6 +2,8 @@ from intersection import Intersection
 from border_node import BorderNode
 from nodes import border_data, intersection_data
 from global_traffic_light_combinations import combinations
+from random import choice, randint
+from paths import path_dict, border_names
 
 import numpy as np
 # Map class, contains all nodes and connections between them.
@@ -72,6 +74,15 @@ class Map:
 
 		#self.step(action)
 
+	def time_step(self):
+		n_cars = 4
+		for c in range(n_cars):
+			start = choice(border_names)
+			end = choice(border_names)
+			while start == end:
+				end = choice(border_names)
+			self.spawn_car(start, end)
+
 	@staticmethod
 	def get_index(path_key):
 		border_names = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"]
@@ -135,23 +146,41 @@ class Map:
 		state = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 		return state
 
-	def step(self,action):
+	def step(self,action, t):
+
+		self.time_step()
 
 		a = combinations[action]
 		#print(a)
-		self.update_traffic_lights(a)
+		if (t % 3 == 0):
+			#if (self.global_reward == 0):
+			#	self.display_map()
+
+			#print("Reward: ", self.global_reward)
+			for intersection in self.intersections:
+				intersection.reset_reward()
+			
+			self.global_reward = 0
+			self.update_traffic_lights(a)
+
+		self.global_state = []
+		self.update_cars(t)
+		
+
 		#print(a)
-		global_state = []
-		global_reward = 0
+
 	#	self.model_reward = self.episode_reward
 		#self.state = self.get_intersection_state()
 		for index,intersection in enumerate(self.intersections):
 			state,reward = (intersection.step(a[index]))
-			global_state.extend(state)
-			global_reward += reward
+			self.global_state.extend(state)
+			self.global_reward += reward
 		done = True
 		#print(global_state, global_reward, "\n")
-		return np.array(global_state),global_reward, done, {}
+		
+		#self.update_cars(t);
+
+		return np.array(self.global_state),self.global_reward, done, {}
 
 	def display_map(self):
 		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))

@@ -39,11 +39,14 @@ class Intersection(Node):
 
 	def update_cars(self, time_step):
 		#episode_reward = self.reward
-		if time_step % 10 == 0:
-			pass
+		#if time_step % 10 == 0:
+		#	pass
 			#print(self.episode_reward)	
 		for i in range(4):
 			self.move_car(i, time_step)
+
+	def reset_reward(self):
+		self.episode_reward = 0
 
 
 			
@@ -54,8 +57,8 @@ class Intersection(Node):
 
 		#self.step(action)
 
-		self.model_reward = self.episode_reward
-		self.state = self.get_intersection_state()
+		#self.model_reward = self.episode_reward
+		#self.state = self.get_intersection_state()
 		
 
 		for i in range(4):
@@ -70,15 +73,15 @@ class Intersection(Node):
 
 
 	def step(self,action):
-		self.model_reward = self.episode_reward
+		#self.model_reward = self.episode_reward
 		self.state = self.get_intersection_state()
 		#print(self.state, self.model_reward, "\n")
 
-		return np.array(self.state), self.model_reward
+		return np.array(self.state), self.episode_reward
 
 	def move_car(self, i, time_step):
-		if time_step % 10 == 0:
-			self.episode_reward = 0
+		#if time_step % 3 == 0:
+		#	self.episode_reward = 0
 
 		q = self.qs[i]
 		#q.get_direction_amounts(time_step, self.x, self.y)
@@ -99,7 +102,7 @@ class Intersection(Node):
 							# car was moved towards direction
 							car_moved = True
 							car.reset_waiting_time() # reset the waiting time since the car has moved
-							self.reward +=1 #a car passing trough is a reward for the intersection
+							#self.reward +=1 #a car passing trough is a reward for the intersection
 							self.episode_reward += 1
 
 							#print(time_step)

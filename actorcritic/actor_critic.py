@@ -297,7 +297,8 @@ class Worker(threading.Thread):
     while Worker.global_episode < args.max_eps:
       #print("RESETTING \n")
       #print("{0} cars are still in system".format((self.env).number_of_cars()))
-      print("{0} cars are still in system".format((self.env).number_of_cars()))
+     # print("{0} cars are still in system".format((self.env).number_of_cars()))
+     # print("TEST")
       current_state = self.env.reset()
       #print("RESET \n")
       
@@ -310,30 +311,25 @@ class Worker(threading.Thread):
       done = False
 
       n_time_steps = 100
+      print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
-      #  print(t)
+        print("Time step: ", t)
+
+
+        
+
+       # self.time_step()
+
+       # if t % 3 == 0:  # update traffic lights once every 10 time steps
         logits, _ = self.local_model(
 
             tf.convert_to_tensor(current_state[None, :],
                                  dtype=tf.float32))
         probs = tf.nn.softmax(logits)
 
-        
+        action = np.random.choice(self.action_size, p=probs.numpy()[0])
+        new_state, reward, done, _ = self.env.step(action,t)
 
-        self.time_step()
-
-        if t % 10 == 0:  # update traffic lights once every 10 time steps
-          action = np.random.choice(self.action_size, p=probs.numpy()[0])
-          new_state, reward, done, _ = self.env.step(action)
-          #print(new_state, reward, "\n")
-         # traffic_map.update_traffic_lights()
-        self.env.update_cars(t)
-
-
-
-        
-      #  if done:
-       #   reward = -1
         ep_reward += reward
        # print("{0} cars are still in system".format((self.env).number_of_cars()))
         mem.store(current_state, action, reward)
@@ -358,29 +354,29 @@ class Worker(threading.Thread):
           mem.clear()
           time_count = 0
 
-          if done:  # done and print information
-            Worker.global_moving_average_reward = \
-              record(Worker.global_episode, ep_reward, self.worker_idx,
-                     Worker.global_moving_average_reward, self.result_queue,
-                     self.ep_loss, ep_steps)
-            # We must use a lock to save our model and to print to prevent data races.
-            if ep_reward > Worker.best_score:
-              with Worker.save_lock:
-                print("Saving best model to {}, "
-                      "episode score: {}".format(self.save_dir, ep_reward))
-                self.global_model.save_weights(
-                    os.path.join(self.save_dir,
-                                 'model_{}.h5'.format("traffic"))
-                )
-                Worker.best_score = ep_reward
-            Worker.global_episode += 1
+        #if done:  # done and print information
         ep_steps += 1
-        
-
 
         time_count += 1
         current_state = new_state
         total_step += 1
+
+      Worker.global_moving_average_reward = \
+        record(Worker.global_episode, ep_reward, self.worker_idx,
+               Worker.global_moving_average_reward, self.result_queue,
+               self.ep_loss, ep_steps)
+      # We must use a lock to save our model and to print to prevent data races.
+      if ep_reward > Worker.best_score:
+        with Worker.save_lock:
+          print("Saving best model to {}, "
+                "episode score: {}".format(self.save_dir, ep_reward))
+          self.global_model.save_weights(
+              os.path.join(self.save_dir,
+                           'model_{}.h5'.format("traffic"))
+          )
+          Worker.best_score = ep_reward      
+      Worker.global_episode += 1
+
     self.result_queue.put(None)
 
   def compute_loss(self,
