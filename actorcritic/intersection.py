@@ -79,6 +79,7 @@ class Intersection(Node):
 
 		return np.array(self.state), self.episode_reward
 
+	"""
 	def move_car(self, i, time_step):
 		#if time_step % 3 == 0:
 		#	self.episode_reward = 0
@@ -86,7 +87,8 @@ class Intersection(Node):
 		q = self.qs[i]
 		#q.get_direction_amounts(time_step, self.x, self.y)
 		traffic_light = self.traffic_lights[i]
-		car = q.get_car()  # pop car from queue
+	#	car = q.get_car()  # pop car from queue
+		car = q.get_car_for_direction(i)
 		if car is not None:  # there was a car in the queue
 			if not car.can_move(time_step):
 				# car has already moved
@@ -111,7 +113,24 @@ class Intersection(Node):
 
 				if not car_moved:
 					self.put_car_back(q, car, time_step)
+	"""
 
+	def move_car(self, i, time_step):
+		q = self.qs[i]
+		traffic_light = self.traffic_lights[i]
+		combinations = traffic_light.get_combination()
+		for index,combination in enumerate(combinations):
+			if (combination) == True:
+				green_direction = index
+				car = q.get_car_for_direction(green_direction, i, time_step, self.x, self.y)
+				if car is not None:
+					direction = car.get_directions(time_step, self.x, self.y)[0]
+					neighbour = self.neighbours[direction]
+					self.neighbours[direction].transfer_car(self, car)
+					self.episode_reward += 1
+
+
+		#traffic_light.green(i, direction)
 
 	def put_car_back(self, q, car, time_step):
 		car.increment_waiting_time() # increment the waiting time for the car 	

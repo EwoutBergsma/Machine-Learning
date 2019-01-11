@@ -9,6 +9,7 @@ import numpy as np
 # Map class, contains all nodes and connections between them.
 class Map:
 	def __init__(self, max_q_size):
+
 		self.intersections = []
 		self.borders = []
 		for border in border_data:
@@ -147,6 +148,8 @@ class Map:
 		return state
 
 	def step(self,action, t):
+
+		#self.display_map()
 
 		self.time_step()
 

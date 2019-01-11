@@ -19,6 +19,7 @@ class Car:
 		self.total_moves = 0
 		self.waiting_time = 0
 		self.distance_between_nodes = 10
+		self.currect_position = 0
 
 	def make_queue(self, path):
 		for direction in path:
