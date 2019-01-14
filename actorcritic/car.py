@@ -28,6 +28,11 @@ class Car:
 	def get_number_of_cars(self):
 		return [self.added_cars, self.removed_cars]
 
+	def reset_number_of_cars(self):
+		self.added_cars = 0
+		self.removed_cars = 0
+
+
 	def set_last_move(self, time_step):
 		self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
 

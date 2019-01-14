@@ -4,40 +4,41 @@ from collections import deque
 class CarQueue:
 	def __init__(self, max_size):
 		if max_size >= 0:
-			self.q = deque(maxlen=max_size)
-			# self.q = list()
+			# self.q = deque(maxlen=max_size)
+			self.q = list()
+			self.maxlen = max_size
 		else:
-			self.q = deque()
-			# self.q = list()
-		self.maxlen = max_size
+			# self.q = deque()
+			self.q = list()
+			self.maxlen = 9999999999
 
-	def add_car(self, car):
-		if self.q.maxlen is None or len(self.q) < self.q.maxlen:
-			self.q.appendleft(car)
-			return True
-		return False
 
 	# def add_car(self, car):
-	# 	#sprint(self.maxlen)
-	# 	if self.maxlen is None or len(self.q) < self.maxlen:
-	#
-	# 		#self.q.appendleft(car)
-	# 		#self.q = [car] + self.q
-	# 		self.q.append(car)
+	# 	if self.q.maxlen is None or len(self.q) < self.q.maxlen:
+	# 		self.q.appendleft(car)
 	# 		return True
 	# 	return False
 
-	# def add_car_back(self, car):
-	# 	if self.maxlen is None or len(self.q) < self.maxlen:
-	# 		self.q.append(car)
-	# 		return True
-	# 	return False
-
-	def add_car_back(self, car):
-		if self.q.maxlen is None or len(self.q) < self.q.maxlen:
+	def add_car(self, car):
+		#sprint(self.maxlen)
+		if self.maxlen is None or len(self.q) < self.maxlen:
+			#self.q.appendleft(car)
+			#self.q = [car] + self.q
 			self.q.append(car)
 			return True
 		return False
+
+	def add_car_back(self, car):
+		if self.maxlen is None or len(self.q) < self.maxlen:
+			self.q.append(car)
+			return True
+		return False
+
+	# def add_car_back(self, car):
+	# 	if self.q.maxlen is None or len(self.q) < self.q.maxlen:
+	# 		self.q.append(car)
+	# 		return True
+	# 	return False
 
 	def get_car(self):
 		if len(self.q) == 0:
@@ -45,28 +46,34 @@ class CarQueue:
 		car = self.q.pop()
 		return car
 
-	def get_car_for_direction(self, green_direction, car_position, time_step, x, y):
-		if(green_direction) == 0:
-			possible_direction = (car_position + 1)%4
-		if(green_direction) == 1:
-			possible_direction = (car_position + 2)%4
-		if(green_direction) == 2:
-			possible_direction = (car_position + 3)%4
+	def get_car_for_direction(self, green_directions, car_position, time_step, x, y):
+		possible_directions = []
+		if 0 in green_directions:
+			possible_directions.append((car_position + 1) % 4)
+		if 1 in green_directions:
+			possible_directions.append((car_position + 2) % 4)
+		if 2 in green_directions:
+			possible_directions.append((car_position + 3) % 4)
+
+		# if(green_direction) == 0:
+		# 	possible_direction = (car_position + 1)%4
+		# if(green_direction) == 1:
+		# 	possible_direction = (car_position + 2)%4
+		# if(green_direction) == 2:
+		# 	possible_direction = (car_position + 3)%4
 
 		# print("POSSIBLE DIRECTION: ", possible_direction)
 		for index,car in enumerate(self.q):
 			#print("TEST")
-			print("Size: ", str(len(self.q)))
-			print("Index: ", index)
 
-			car_direction = car.get_directions(x, y)[0]
+			car_directions = car.get_directions(x, y)
 			# print("CAR  DIRECTION: ", car_direction)
-			if (possible_direction == car_direction):
+			# if possible_direction == car_direction:
+			if any(x in possible_directions for x in car_directions):
 				# print("Index: ", index)
 				returned_car = self.q.pop(index)
 				return returned_car
-			else:
-				return None
+		return None
 
 	def number_of_cars(self):
 		return len(self.q)

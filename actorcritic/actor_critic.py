@@ -115,14 +115,15 @@ class RandomAgent:
       steps = 0
       for t in range(0,time):
         # Sample randomly from the action space and step
-        time_step(traffic_map)
+        action = np.random.randint(self.env.action_size)
+        new_state, reward, done, _ = self.env.step(action, t)
 
-        if t % 10 == 0:  # update traffic lights once every 10 time steps
-          traffic_map.update_traffic_lights()
-          _, reward, done, _ = self.env.step(self.env.action_space.sample())
-          reward_sum += reward
+        # if t % 10 == 0:  # update traffic lights once every 10 time steps
+        #   self.env.update_traffic_lights()
+        #   _, reward, done, _ = self.env.step(self.env.action_space.sample())
+        #   reward_sum += reward
 
-        traffic_map.update_cars(t)
+        # self.env.update_cars(t)
 
         steps += 1
         
@@ -200,7 +201,12 @@ class MasterAgent():
         break
     [w.join() for w in workers]
 
+    self.plot_results(moving_average_rewards)
+
+  def plot_results(self, moving_average_rewards):
+
     plt.plot(moving_average_rewards)
+    plt.ylim(0, max(moving_average_rewards) * 1.1)
     plt.ylabel('Moving average ep reward')
     plt.xlabel('Step')
     plt.savefig(os.path.join(self.save_dir,
@@ -295,13 +301,15 @@ class Worker(threading.Thread):
     total_step = 1
     mem = Memory()
     while Worker.global_episode < args.max_eps:
+      print("Epoch: {0}".format(Worker.global_episode))
+
       #print("RESETTING \n")
       #print("{0} cars are still in system".format((self.env).number_of_cars()))
      # print("{0} cars are still in system".format((self.env).number_of_cars()))
      # print("TEST")
       current_state = self.env.reset()
       #print("RESET \n")
-      
+
       mem.clear()
       ep_reward = 0.
       ep_steps = 0
@@ -311,17 +319,13 @@ class Worker(threading.Thread):
       done = False
 
       n_time_steps = 200
-      print("{0} cars are still in system".format((self.env).number_of_cars()))
+      # print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
-        if t % 50 == 0:
-          print("Time step: ", t)
-
-
-        
+        # if t % 10 == 0:
+        #   print("Time step: ", t)
 
        # self.time_step()
 
-       # if t % 3 == 0:  # update traffic lights once every 10 time steps
         logits, _ = self.local_model(
 
             tf.convert_to_tensor(current_state[None, :],
@@ -361,12 +365,6 @@ class Worker(threading.Thread):
         time_count += 1
         current_state = new_state
         total_step += 1
-      n_cars = Car.get_number_of_cars(Car)
-      print("")
-      print("{0} cars were added to the system, {1} cars have left the system".format(n_cars[0], n_cars[1]))
-      print("{0} cars are still in system".format(self.env.number_of_cars()))
-      print("{0} cars have disappeared".format(n_cars[0] - n_cars[1] - self.env.number_of_cars()))
-      print("random dirs: " + str(Car.random_direction))
 
       Worker.global_moving_average_reward = \
         record(Worker.global_episode, ep_reward, self.worker_idx,

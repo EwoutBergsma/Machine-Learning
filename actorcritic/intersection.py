@@ -50,6 +50,9 @@ class Intersection(Node):
 
 			
 	def update_traffic_lights(self,action):
+		# new_setup = choice(combinations)
+		# for i in range(4):
+		# 	self.traffic_lights[i].update(new_setup[i])
 		#self.action = []
 		#for traffic_light in self.traffic_lights:
 		#	self.action.append(traffic_light.get_combination())
@@ -58,7 +61,6 @@ class Intersection(Node):
 
 		#self.model_reward = self.episode_reward
 		#self.state = self.get_intersection_state()
-		
 
 		for i in range(4):
 			self.traffic_lights[i].update(action[i])
@@ -117,41 +119,18 @@ class Intersection(Node):
 	def move_car(self, i, time_step):
 		q = self.qs[i]
 		traffic_light = self.traffic_lights[i]
-		# combinations = traffic_light.get_combination()
-		# for index,combination in enumerate(combinations):
-		# 	if (combination) == True:
-		# 		green_direction = index
-		# 		car = q.get_car_for_direction(green_direction, i, time_step, self.x, self.y)
-		# 		# car = q.get_car()
-		# 		if car is not None:
-		# 			# direction = car.get_directions(time_step, self.x, self.y)[0]
-		# 			# neighbour = self.neighbours[direction]
-		# 			# self.neighbours[direction].transfer_car(self, car)
-		# 			# self.episode_reward += 1
-		#
-		# 			if not car.can_move(time_step):
-		# 				# car has already moved
-		# 				self.put_car_back(q, car, time_step)
-		# 			else:
-		# 				directions = car.get_directions(self.x, self.y)  # directions of the car
-		# 				car_moved = False
-		# 				for direction in directions:
-		# 					# if traffic_light.red(i, direction) or not self.neighbours[direction].transfer_car(self, car):
-		# 					neighbour = self.neighbours[direction]
-		# 					if not neighbour.type == "border" or (neighbour.x == car.dest_x and neighbour.y == car.dest_y):
-		# 						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
-		# 							# car was moved towards direction
-		# 							car_moved = True
-		# 							car.set_last_move(time_step)
-		# 							break
-		# 				if not car_moved:
-		# 					self.put_car_back(q, car, time_step)
-		car = q.get_car()  # pop car from queue
+		combinations = traffic_light.get_combination()
+		green_directions = []
+		for index,combination in enumerate(combinations):
+			if combination:
+				green_directions.append(index)
+				# green_direction = index
+		# car = q.get_car_for_direction(green_directions, i, time_step, self.x, self.y)
+		car = q.get_car()
 		if car is not None:
 			# direction = car.get_directions(time_step, self.x, self.y)[0]
 			# neighbour = self.neighbours[direction]
 			# self.neighbours[direction].transfer_car(self, car)
-			# self.episode_reward += 1
 
 			if not car.can_move(time_step):
 				# car has already moved
@@ -166,6 +145,7 @@ class Intersection(Node):
 						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
 							# car was moved towards direction
 							car_moved = True
+							self.episode_reward += 1
 							car.set_last_move(time_step)
 							break
 				if not car_moved:

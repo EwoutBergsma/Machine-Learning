@@ -1,8 +1,8 @@
 from intersection import Intersection
 from border_node import BorderNode
 from nodes import border_data, intersection_data
-from global_traffic_light_combinations import combinations
-from random import choice, randint
+from new_global_traffic_light_combinations import combinations
+from random import choice, randint, random
 from paths import path_dict, border_names
 
 import numpy as np
@@ -24,7 +24,7 @@ class Map:
 		# self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 		# self.observation_space = 
 		#self.action_size = 7
-		self.action_size = 210
+		self.action_size = 2401
 		#self.state_size = 8
 		self.state_size = 32
 
@@ -64,6 +64,7 @@ class Map:
 		for border in self.borders:
 			border.update_cars(time_step)
 
+
 	def update_traffic_lights(self,action):
 		#action = choice(combinations)
 		for index,intersection in enumerate(self.intersections):
@@ -76,13 +77,22 @@ class Map:
 		#self.step(action)
 
 	def time_step(self):
-		n_cars = 4
-		for c in range(n_cars):
-			start = choice(border_names)
-			end = choice(border_names)
-			while start == end:
+		n_cars = 0.7
+
+		if n_cars % 1 == 0:
+			for c in range(n_cars):
+				start = choice(border_names)
 				end = choice(border_names)
-			self.spawn_car(start, end)
+				while start == end:
+					end = choice(border_names)
+				self.spawn_car(start, end)
+		else:
+			if random() < n_cars:
+				start = choice(border_names)
+				end = choice(border_names)
+				while start == end:
+					end = choice(border_names)
+				self.spawn_car(start, end)
 
 	@staticmethod
 	def get_index(path_key):
@@ -155,7 +165,7 @@ class Map:
 
 		a = combinations[action]
 		#print(a)
-		if (t % 3 == 0):
+		if (t % 1 == 0):
 			#if (self.global_reward == 0):
 			#	self.display_map()
 

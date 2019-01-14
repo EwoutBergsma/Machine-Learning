@@ -5,37 +5,48 @@ from car import Car
 from paths import path_dict, border_names
 from tqdm import tqdm
 import numpy as np
-from global_traffic_light_combinations import combinations
+from new_global_traffic_light_combinations import combinations
+import matplotlib.pyplot as plt
 
 def main(argv):
 
 	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 1000
+	n_time_steps = 10000
+	iterations = 10
+	leaving_cars = [0] * (n_time_steps)
+	for i in tqdm(range(iterations)):
+		traffic_map.reset()
+		Car.reset_number_of_cars(Car)
 
-	for t in tqdm(range(0, n_time_steps)):
+		for t in range(0, n_time_steps):
 
-		time_step(traffic_map)
+			# time_step(traffic_map)
 
-		if t % 3 == 0:  # update traffic lights once every 10 time steps
-			traffic_map.update_traffic_lights(combinations[np.random.randint(traffic_map.action_size)])
-		traffic_map.update_cars(t)
+			# if t % 10 == 0:  # update traffic lights once every 10 time steps
+			# 	traffic_map.update_traffic_lights(combinations[np.random.randint(traffic_map.action_size)])
+			# traffic_map.update_cars(t)
 
-		# action = np.random.randint(combinations[traffic_map.action_size])
+			action = np.random.randint(traffic_map.action_size)
 
-		# if t % 10 == 0:  # update traffic lights once every 10 time steps
-		# traffic_map.step(action,t)
-		# traffic_map.update_cars(t)
+			new_state, reward, done, _ = traffic_map.step(action, t)
 
-	traffic_map.display_map()
+			leaving_cars[t] += (Car.get_number_of_cars(Car)[1]/iterations)
 
-	n_cars = Car.get_number_of_cars(Car)
-	print("")
-	print("{0} cars were added to the system, {1} cars have left the system".format(n_cars[0], n_cars[1]))
-	print("{0} cars are still in system".format(traffic_map.number_of_cars()))
-	print("{0} cars have disappeared".format(n_cars[0] - n_cars[1] - traffic_map.number_of_cars()))
-	print("random dirs: " + str(Car.random_direction))
+		traffic_map.display_map()
+
+		n_cars = Car.get_number_of_cars(Car)
+		print("")
+		print("{0} cars were added to the system, {1} cars have left the system".format(n_cars[0], n_cars[1]))
+		print("{0} cars are still in system".format(traffic_map.number_of_cars()))
+		print("{0} cars have disappeared".format(n_cars[0] - n_cars[1] - traffic_map.number_of_cars()))
+		print("random dirs: " + str(Car.random_direction))
+
+	plt.plot(leaving_cars)
+	plt.ylabel('#cars that have left the system')
+	plt.xlabel('Step')
+	plt.show()
 
 
 def time_step(traffic_map):

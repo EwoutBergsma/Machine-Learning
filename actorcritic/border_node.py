@@ -9,7 +9,7 @@ class BorderNode(Node):
 	def __init__(self, name, x, y):
 		super().__init__(name, "border", x, y)
 		self.connection = None
-		self.q = CarQueue(50)  # -1 for no maximum q-size
+		self.q = CarQueue(-1)  # -1 for no maximum q-size
 
 	def set_connection(self, neighbour):
 		self.connection = neighbour
@@ -31,7 +31,7 @@ class BorderNode(Node):
 		return self.q.number_of_cars()
 
 	def reset(self):
-		self.q = CarQueue(50)
+		self.q = CarQueue(-1)
 
 	@staticmethod
 	def car_leaves_system(car):

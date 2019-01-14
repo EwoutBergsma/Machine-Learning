@@ -8,10 +8,10 @@ from tqdm import tqdm
 
 def main(argv):
 
-	max_q_size = 50
+	max_q_size = 5000
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 1000
+	n_time_steps = 10000
 
 	for t in tqdm(range(0, n_time_steps)):
 
