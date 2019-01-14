@@ -48,7 +48,6 @@ class Intersection(Node):
 	def reset_reward(self):
 		self.episode_reward = 0
 
-
 			
 	def update_traffic_lights(self,action):
 		#self.action = []
@@ -118,16 +117,59 @@ class Intersection(Node):
 	def move_car(self, i, time_step):
 		q = self.qs[i]
 		traffic_light = self.traffic_lights[i]
-		combinations = traffic_light.get_combination()
-		for index,combination in enumerate(combinations):
-			if (combination) == True:
-				green_direction = index
-				car = q.get_car_for_direction(green_direction, i, time_step, self.x, self.y)
-				if car is not None:
-					direction = car.get_directions(time_step, self.x, self.y)[0]
+		# combinations = traffic_light.get_combination()
+		# for index,combination in enumerate(combinations):
+		# 	if (combination) == True:
+		# 		green_direction = index
+		# 		car = q.get_car_for_direction(green_direction, i, time_step, self.x, self.y)
+		# 		# car = q.get_car()
+		# 		if car is not None:
+		# 			# direction = car.get_directions(time_step, self.x, self.y)[0]
+		# 			# neighbour = self.neighbours[direction]
+		# 			# self.neighbours[direction].transfer_car(self, car)
+		# 			# self.episode_reward += 1
+		#
+		# 			if not car.can_move(time_step):
+		# 				# car has already moved
+		# 				self.put_car_back(q, car, time_step)
+		# 			else:
+		# 				directions = car.get_directions(self.x, self.y)  # directions of the car
+		# 				car_moved = False
+		# 				for direction in directions:
+		# 					# if traffic_light.red(i, direction) or not self.neighbours[direction].transfer_car(self, car):
+		# 					neighbour = self.neighbours[direction]
+		# 					if not neighbour.type == "border" or (neighbour.x == car.dest_x and neighbour.y == car.dest_y):
+		# 						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
+		# 							# car was moved towards direction
+		# 							car_moved = True
+		# 							car.set_last_move(time_step)
+		# 							break
+		# 				if not car_moved:
+		# 					self.put_car_back(q, car, time_step)
+		car = q.get_car()  # pop car from queue
+		if car is not None:
+			# direction = car.get_directions(time_step, self.x, self.y)[0]
+			# neighbour = self.neighbours[direction]
+			# self.neighbours[direction].transfer_car(self, car)
+			# self.episode_reward += 1
+
+			if not car.can_move(time_step):
+				# car has already moved
+				self.put_car_back(q, car, time_step)
+			else:
+				directions = car.get_directions(self.x, self.y)  # directions of the car
+				car_moved = False
+				for direction in directions:
+					# if traffic_light.red(i, direction) or not self.neighbours[direction].transfer_car(self, car):
 					neighbour = self.neighbours[direction]
-					self.neighbours[direction].transfer_car(self, car)
-					self.episode_reward += 1
+					if not neighbour.type == "border" or (neighbour.x == car.dest_x and neighbour.y == car.dest_y):
+						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
+							# car was moved towards direction
+							car_moved = True
+							car.set_last_move(time_step)
+							break
+				if not car_moved:
+					self.put_car_back(q, car, time_step)
 
 
 		#traffic_light.green(i, direction)
@@ -136,22 +178,22 @@ class Intersection(Node):
 		car.increment_waiting_time() # increment the waiting time for the car 	
 		if not q.add_car_back(car):  # car is added back to queue
 			print("CAR COULD NOT BE ADDED BACK TO QUEUE AT INTERSECTION")
-			if not car.can_move(time_step): #car was  already moved. do not make it  move another  time.
-				if not q.add_car_back(car):  # car is added back to queue
-					print("CAR COULD NOT BE ADDED BACK TO QUEUE")
-			else: #try to move car
-				direction = car.get_direction(time_step)  # first direction of the car
-				if not self.neighbours[direction].transfer_car(self, car):
-					# car has already moved or car could not be moved towards its direction
-					car.put_direction_back(direction)
-
-					if not q.add_car_back(car):  # car is added back to queue
-						print("CAR COULD NOT BE ADDED BACK TO QUEUE")
-				"""
-				else: #car was  moved  successfully to next queue
-					self.reward +=1 #a car passing trough is  a reqard for the intersection
-					car.reset_waiting_time()
-				"""
+			# if not car.can_move(time_step): #car was  already moved. do not make it  move another  time.
+			# 	if not q.add_car_back(car):  # car is added back to queue
+			# 		print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+			# else: #try to move car
+			# 	direction = car.get_direction(time_step)  # first direction of the car
+			# 	if not self.neighbours[direction].transfer_car(self, car):
+			# 		# car has already moved or car could not be moved towards its direction
+			# 		car.put_direction_back(direction)
+			#
+			# 		if not q.add_car_back(car):  # car is added back to queue
+			# 			print("CAR COULD NOT BE ADDED BACK TO QUEUE")
+			# 	"""
+			# 	else: #car was  moved  successfully to next queue
+			# 		self.reward +=1 #a car passing trough is  a reqard for the intersection
+			# 		car.reset_waiting_time()
+			# 	"""
 
 	def count_cars_at(self, origin_str):
 		for index in range(len(self.neighbours)):

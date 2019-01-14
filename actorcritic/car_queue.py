@@ -3,27 +3,38 @@ from collections import deque
 
 class CarQueue:
 	def __init__(self, max_size):
-
 		if max_size >= 0:
-			#self.q = deque(maxlen=max_size)
-			self.q = list()
+			self.q = deque(maxlen=max_size)
+			# self.q = list()
 		else:
-			#self.q = deque()
-			self.q = list()
+			self.q = deque()
+			# self.q = list()
 		self.maxlen = max_size
 
 	def add_car(self, car):
-		#sprint(self.maxlen)
-		if self.maxlen is None or len(self.q) < self.maxlen:
-
-			#self.q.appendleft(car)
-			#self.q = [car] + self.q 
-			self.q.append(car)
+		if self.q.maxlen is None or len(self.q) < self.q.maxlen:
+			self.q.appendleft(car)
 			return True
 		return False
 
+	# def add_car(self, car):
+	# 	#sprint(self.maxlen)
+	# 	if self.maxlen is None or len(self.q) < self.maxlen:
+	#
+	# 		#self.q.appendleft(car)
+	# 		#self.q = [car] + self.q
+	# 		self.q.append(car)
+	# 		return True
+	# 	return False
+
+	# def add_car_back(self, car):
+	# 	if self.maxlen is None or len(self.q) < self.maxlen:
+	# 		self.q.append(car)
+	# 		return True
+	# 	return False
+
 	def add_car_back(self, car):
-		if self.maxlen is None or len(self.q) < self.maxlen:
+		if self.q.maxlen is None or len(self.q) < self.q.maxlen:
 			self.q.append(car)
 			return True
 		return False
@@ -35,7 +46,6 @@ class CarQueue:
 		return car
 
 	def get_car_for_direction(self, green_direction, car_position, time_step, x, y):
-		
 		if(green_direction) == 0:
 			possible_direction = (car_position + 1)%4
 		if(green_direction) == 1:
@@ -43,13 +53,16 @@ class CarQueue:
 		if(green_direction) == 2:
 			possible_direction = (car_position + 3)%4
 
-		#print("POSSIBLE DIRECTION: ", possible_direction)
+		# print("POSSIBLE DIRECTION: ", possible_direction)
 		for index,car in enumerate(self.q):
 			#print("TEST")
-			car_direction = car.get_directions(time_step, x, y)[0]
-			#print("CAR  DIRECTION: ", car_direction)
+			print("Size: ", str(len(self.q)))
+			print("Index: ", index)
+
+			car_direction = car.get_directions(x, y)[0]
+			# print("CAR  DIRECTION: ", car_direction)
 			if (possible_direction == car_direction):
-				#print("Index: ", index)
+				# print("Index: ", index)
 				returned_car = self.q.pop(index)
 				return returned_car
 			else:

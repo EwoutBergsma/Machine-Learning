@@ -313,7 +313,8 @@ class Worker(threading.Thread):
       n_time_steps = 200
       print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
-        print("Time step: ", t)
+        if t % 50 == 0:
+          print("Time step: ", t)
 
 
         
@@ -360,6 +361,12 @@ class Worker(threading.Thread):
         time_count += 1
         current_state = new_state
         total_step += 1
+      n_cars = Car.get_number_of_cars(Car)
+      print("")
+      print("{0} cars were added to the system, {1} cars have left the system".format(n_cars[0], n_cars[1]))
+      print("{0} cars are still in system".format(self.env.number_of_cars()))
+      print("{0} cars have disappeared".format(n_cars[0] - n_cars[1] - self.env.number_of_cars()))
+      print("random dirs: " + str(Car.random_direction))
 
       Worker.global_moving_average_reward = \
         record(Worker.global_episode, ep_reward, self.worker_idx,
