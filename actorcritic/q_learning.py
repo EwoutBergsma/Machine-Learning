@@ -6,6 +6,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import gym
+from math import ceil
 
 
 def main(args):
@@ -14,46 +15,34 @@ def main(args):
 	tf.reset_default_graph()
 
 	# parameters
-	n_input = 999
-	n_hidden = 50
-	n_output = 2401
+	n_input = 16
+	n_hidden = 10
+	n_output = 4
 
 	# learning rate
-	n = 0.01
+	n = 0.1
 
 	n_time_steps = 200
 
 
 	# These lines establish the feed-forward part of the network used to choose actions
 	# input_layer = tf.placeholder(shape=[1, 16], dtype=tf.float32)
-	input_layer = tf.placeholder("float", [None, n_input])
+	input_layer = tf.placeholder(shape=[1, n_input], dtype=tf.float32)
 
-	# W = tf.Variable(tf.random_uniform([16, 4], 0, 0.01))
-	weights = {
-		'h': tf.Variable(tf.random_uniform([n_input, n_hidden])),
-		'out': tf.Variable(tf.random_uniform([n_hidden, n_output]))
-	}
-	biases = {
-		'b': tf.Variable(tf.random_normal([n_hidden])),
-		'out': tf.Variable(tf.random_normal([n_output]))
-	}
+	weights = tf.Variable(tf.random_uniform([n_input, n_output], 0, 0.01))
 
-	def multilayer_perceptron(x, weights, biases):
-		# Hidden layer with RELU activation
-		hidden_layer = tf.add(tf.matmul(x, weights['h']), biases['b'])
-		hidden_layer = tf.nn.relu(hidden_layer)
-		# Output layer with linear activation
-		out_layer = tf.matmul(hidden_layer, weights['out']) + biases['out']
-		return out_layer
+	hidden_weights = tf.Variable(tf.random_uniform([n_input, n_hidden], 0, 0.01))
+	output_weights = tf.Variable(tf.random_uniform([n_hidden, n_output], 0, 0.01))
+	hidden_bias = tf.Variable(tf.random_normal([n_hidden])),
+	output_bias = tf.Variable(tf.random_normal([n_output]))
 
 	# Construct model
-	output_layer = multilayer_perceptron(input_layer, weights, biases)
+	output_layer = tf.matmul(tf.matmul(input_layer, hidden_weights), output_weights)
+	# output_layer = tf.matmul(input_layer, weights)
 	predict = tf.argmax(output_layer, 1)
-	# Qout = tf.matmul(input_layer, W)
-	# predict = tf.argmax(Qout, 1)
 
 	# Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
-	nextQ = tf.placeholder(shape=[1, n_input], dtype=tf.float32)
+	nextQ = tf.placeholder(shape=[1, n_output], dtype=tf.float32)
 	loss = tf.reduce_sum(tf.square(nextQ - output_layer))
 	trainer = tf.train.GradientDescentOptimizer(learning_rate=n)
 	updateModel = trainer.minimize(loss)
@@ -65,8 +54,9 @@ def main(args):
 	# gamma
 	y = .99
 	# epsilon
-	e = 0.1
-	num_episodes = 2000
+	e = 1.
+	min_e = 0.1
+	num_episodes = 10000
 	# create lists to contain total rewards and steps per episode
 	jList = []
 	rList = []
@@ -82,33 +72,49 @@ def main(args):
 			while j < n_time_steps:
 				j += 1
 				# Choose an action by greedily (with e chance of random action) from the Q-network
-				a, allQ = sess.run([predict, output_layer], feed_dict={input_layer: np.identity(16)[s:s + 1]})
+				a, allQ = sess.run([predict, output_layer], feed_dict={input_layer: np.identity(n_input)[s:s + 1]})
 				if np.random.rand(1) < e:
 					a[0] = env.action_space.sample()
 				# Get new state and reward from environment
 				s1, r, d, _ = env.step(a[0])
+
 				# Obtain the Q' values by feeding the new state through our network
-				Q1 = sess.run(output_layer, feed_dict={input_layer: np.identity(16)[s1:s1 + 1]})
+				Q1 = sess.run(output_layer, feed_dict={input_layer: np.identity(n_input)[s1:s1 + 1]})
 				# Obtain maxQ' and set our target value for chosen action.
 				maxQ1 = np.max(Q1)
 				targetQ = allQ
 				targetQ[0, a[0]] = r + y * maxQ1
 				# Train our network using target and predicted Q values
-				_, W1 = sess.run([updateModel, W], feed_dict={input_layer: np.identity(16)[s:s + 1], nextQ: targetQ})
+				# _, weights1 = sess.run([updateModel, weights], feed_dict={input_layer: np.identity(n_input)[s:s + 1], nextQ: targetQ})
+				_, = sess.run([updateModel], feed_dict={input_layer: np.identity(n_input)[s:s + 1], nextQ: targetQ})
+
 				rAll += r
 				s = s1
 				if d == True:
 					# Reduce chance of random action as we train the model.
-					e = 1. / ((i / 50) + 10)
+					e = max(min_e, e - 1/num_episodes)
+					# exploitation at the last 20% of episodes
+					if i > 0.7 * num_episodes:
+						e = 0
 					break
 			jList.append(j)
 			rList.append(rAll)
-	print("Percent of succesful episodes: " + str(sum(rList) / num_episodes) + "%")
-	plt.plot(rList)
-
-	plt.plot(jList)
+	print("Percent of succesful episodes: {0:.2f}%".format(100 * (sum(rList[ceil(0.8*num_episodes):]) / (0.2*num_episodes))))
+	plt.plot(moving_average(rList, 100))
+	# plt.plot(moving_average(jList, 100))
 
 	plt.show()
+
+def moving_average(given_list, N):
+	cumsum, moving_aves = [0], []
+	for i, x in enumerate(given_list, 1):
+		cumsum.append(cumsum[i - 1] + x)
+		if i >= N:
+			moving_ave = (cumsum[i] - cumsum[i - N]) / N
+			# can do stuff with moving_ave here
+			moving_aves.append(moving_ave)
+	return moving_aves
+
 
 
 if __name__ == "__main__":
