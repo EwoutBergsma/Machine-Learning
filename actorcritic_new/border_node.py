@@ -20,7 +20,7 @@ class BorderNode(Node):
 	def update_cars(self, time_step):
 		car = self.q.get_car()
 		if car is not None:
-			directions = car.get_directions(time_step, self.x, self.y)
+			directions = car.get_directions(self.x, self.y)
 			if not self.connection.transfer_car(self, car):
 				if not self.q.add_car_back(car):  # car is added back to queue
 					print("CAR COULD NOT BE ADDED BACK TO QUEUE AT BORDER")

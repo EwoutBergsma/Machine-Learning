@@ -36,7 +36,7 @@ class CarQueue:
 		car = self.q.pop()
 		return car
 
-	def get_car_for_direction(self, green_directions, car_position, time_step, x, y, neighborQueues):
+	def get_car_for_direction(self, green_directions, car_position, x, y, neighborQueues):
 		possible_directions = []
 		if 0 in green_directions:
 			possible_directions.append((car_position + 1) % 4)
@@ -49,7 +49,7 @@ class CarQueue:
 		for index,car in enumerate(self.q):
 			#print("TEST")
 			#car_direction = car.get_directions(time_step, x, y)[0]
-			car_directions = car.get_directions(time_step, x, y)
+			car_directions = car.get_directions( x, y)
 			#print("CAR  DIRECTION: ", car_direction)
 			#if (possible_direction == car_direction and neighborQueues[car_direction].number_of_cars() < self.maxlen):
 			if any(x in possible_directions for x in car_directions):

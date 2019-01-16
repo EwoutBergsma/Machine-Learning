@@ -32,8 +32,8 @@ class Car:
 		Car.added_cars = 0
 		Car.removed_cars = 0
 
-	def get_directions(self, time_step, x, y):
-		self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
+	def get_directions(self, x, y):
+		#self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
 		directions = []
 		if x > self.dest_x:
 			directions.append(3)
@@ -57,8 +57,7 @@ class Car:
 	def set_last_move(self, time_step):
 			self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
 
-	def get_last_move(self):
-		return self.last_move
+
 
 	def put_direction_back(self, direction):
 		self.path_q.append(direction)

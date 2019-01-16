@@ -335,43 +335,45 @@ class Worker(threading.Thread):
 
        # self.time_step()
 
-        if t % 3 == 0:  # update traffic lights once every 10 time steps
+        #if t % 1 == 0:  # update traffic lights once every 10 time steps
           #print("TEST")
-          logits, _ = self.local_model(
+        logits, _ = self.local_model(
 
-              tf.convert_to_tensor(current_state[None, :],
-                                 dtype=tf.float32))
-          probs = tf.nn.softmax(logits)
+            tf.convert_to_tensor(current_state[None, :],
+                               dtype=tf.float32))
+        probs = tf.nn.softmax(logits)
 
-          action = np.random.choice(self.action_size, p=probs.numpy()[0])
-          new_state, reward, done, _ = self.env.step(action,t)
+        action = np.random.choice(self.action_size, p=probs.numpy()[0])
+       # print("ACTION: ", action)
+        new_state, reward, done, _ = self.env.step(action,t)
+        #print("REWARD: ", reward)
 
-          ep_reward += reward
-       # print("{0} cars are still in system".format((self.env).number_of_cars()))
-          mem.store(current_state, action, reward)
+        ep_reward += reward
+     # print("{0} cars are still in system".format((self.env).number_of_cars()))
+        mem.store(current_state, action, reward)
 
-          if time_count == args.update_freq or done:
-            # Calculate gradient wrt to local model. We do so by tracking the
-            # variables involved in computing the loss by using tf.GradientTape
-            with tf.GradientTape() as tape:
-              total_loss = self.compute_loss(done,
-                                             new_state,
-                                             mem,
-                                             args.gamma)
-            self.ep_loss += total_loss
-            # Calculate local gradients
-            grads = tape.gradient(total_loss, self.local_model.trainable_weights)
-            # Push local gradients to global model
-            self.opt.apply_gradients(zip(grads,
-                                         self.global_model.trainable_weights))
-            # Update local model with new weights
-            self.local_model.set_weights(self.global_model.get_weights())
+        if time_count == args.update_freq or done:
+          # Calculate gradient wrt to local model. We do so by tracking the
+          # variables involved in computing the loss by using tf.GradientTape
+          with tf.GradientTape() as tape:
+            total_loss = self.compute_loss(done,
+                                           new_state,
+                                           mem,
+                                           args.gamma)
+          self.ep_loss += total_loss
+          # Calculate local gradients
+          grads = tape.gradient(total_loss, self.local_model.trainable_weights)
+          # Push local gradients to global model
+          self.opt.apply_gradients(zip(grads,
+                                       self.global_model.trainable_weights))
+          # Update local model with new weights
+          self.local_model.set_weights(self.global_model.get_weights())
 
-            mem.clear()
-            time_count = 0
+          mem.clear()
+          time_count = 0
           
-        else:
-          self.env.step(action, t)
+        #else:
+        #  self.env.step(action, t)
 
 
         #if done:  # done and print information

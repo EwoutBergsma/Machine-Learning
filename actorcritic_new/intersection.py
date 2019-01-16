@@ -46,8 +46,10 @@ class Intersection(Node):
 		#if time_step % 10 == 0:
 		#	pass
 			#print(self.episode_reward)	
-		for i in range(4):
-			self.move_car(i, time_step)
+
+		for i in range(5):
+			for j in range(4):
+				self.move_car(j)
 
 	def reset_reward(self):
 		self.episode_reward = 0
@@ -119,7 +121,7 @@ class Intersection(Node):
 					self.put_car_back(q, car, time_step)
 	"""
 
-	def move_car(self, i, time_step):
+	def move_car(self, i):
 		q = self.qs[i]
 		traffic_light = self.traffic_lights[i]
 		combinations = traffic_light.get_combination()
@@ -128,9 +130,9 @@ class Intersection(Node):
 			if (combination) == True:
 				green_directions.append(index)
 
-				car = q.get_car_for_direction(green_directions, i, time_step, self.x, self.y, self.neighbours)
+				car = q.get_car_for_direction(green_directions, i, self.x, self.y, self.neighbours)
 				if car is not None:
-					direction = car.get_directions(time_step, self.x, self.y)[0]
+					direction = car.get_directions( self.x, self.y)[0]
 					neighbour = self.neighbours[direction]
 					if (self.neighbours[direction].transfer_car(self, car)):
 

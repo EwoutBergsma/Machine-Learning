@@ -28,6 +28,8 @@ class Map:
 		self.action_size = 210
 		#self.state_size = 8
 		self.state_size = 32
+		#self.state_size = 96
+
 
 	def set_connections(self):
 		self.connect_intersection("A", "I", "B", "C", "III")
@@ -158,20 +160,27 @@ class Map:
 
 		
 		#print(a)
-		if (t % 3 == 0):
-			a = combinations[action]
-			#print(a)
-			#if (self.global_reward == 0):
-			#	self.display_map()
+		#if (t % 3 == 0):
+		#done = True
+		#old_global_reward = self.global_reward
+		#old_global_state = self.global_state
+		#print("REWARD BEFORE RESET: ", self.global_reward)
+		a = combinations[action]
+		#print(a)
+		#if (self.global_reward == 0):
+		#	self.display_map()
 
-			#print("Reward: ", self.global_reward)
-			for intersection in self.intersections:
-				intersection.reset_reward()
-			
-			self.global_reward = 0
-			self.update_traffic_lights(a)
+		#print("Reward: ", self.global_reward)
+		for intersection in self.intersections:
+			intersection.reset_reward()
+		
+		self.global_reward = 0
+		self.update_traffic_lights(a)
 
 		self.global_state = []
+
+		#return np.array(old_global_state),old_global_reward, done, {}
+
 		self.update_cars(t)
 		
 
@@ -189,6 +198,8 @@ class Map:
 		#self.update_cars(t);
 
 		return np.array(self.global_state),self.global_reward, done, {}
+		#return None
+		#return np.array(old_global_state),old_global_reward, done, {}
 
 	def display_map(self):
 		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))
