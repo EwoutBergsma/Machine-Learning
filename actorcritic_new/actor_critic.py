@@ -196,7 +196,7 @@ class MasterAgent():
     for i, worker in enumerate(workers):
       print("Starting worker {}".format(i))
       worker.start()
-      break
+      #break
 
     moving_average_rewards = []  # record episode reward to plot
     while True:
@@ -304,9 +304,9 @@ class Worker(threading.Thread):
     while Worker.global_episode < args.max_eps:
       print("Epoch: {0}".format(Worker.global_episode))
 
-      n_cars = Car.get_number_of_cars(Car)
-      print("{0} cars are still in system".format((self.env).number_of_cars()))
-      print("Car stats: ", n_cars[0], n_cars[1], self.env.number_of_cars())
+      #n_cars = Car.get_number_of_cars(Car)
+      #print("{0} cars are still in system".format((self.env).number_of_cars()))
+      #print("Car stats: ", n_cars[0], n_cars[1], self.env.number_of_cars())
 
       current_state = self.env.reset()
       #print("RESETTING \n")
@@ -325,7 +325,7 @@ class Worker(threading.Thread):
       time_count = 0
       done = False
 
-      n_time_steps = 100
+      n_time_steps = 1000
       #print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
        # print("Time step: ", t)
@@ -346,7 +346,7 @@ class Worker(threading.Thread):
         action = np.random.choice(self.action_size, p=probs.numpy()[0])
        # print("ACTION: ", action)
         new_state, reward, done, _ = self.env.step(action,t)
-        #print("REWARD: ", reward)
+      # print("REWARD: ", reward)
 
         ep_reward += reward
      # print("{0} cars are still in system".format((self.env).number_of_cars()))
