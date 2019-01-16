@@ -193,7 +193,7 @@ class Map:
 		
 		#self.update_cars(t);
 
-		return np.array(self.global_state),self.global_reward, done, {}
+		return np.array(self.global_state), self.global_reward, done, {}
 
 	def display_map(self):
 		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))

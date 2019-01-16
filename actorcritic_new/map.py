@@ -189,7 +189,7 @@ class Map:
 	#	self.model_reward = self.episode_reward
 		#self.state = self.get_intersection_state()
 		for index,intersection in enumerate(self.intersections):
-			state,reward = (intersection.step())
+			state,reward = (intersection.step(a[index]))
 			self.global_state.extend(state)
 			self.global_reward += reward
 		done = True

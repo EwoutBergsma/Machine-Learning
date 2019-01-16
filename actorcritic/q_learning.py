@@ -1,55 +1,43 @@
 import argparse
-import os
 import numpy as np
-import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import gym
-from gym.envs.registration import register
-from map import Map
+
+import sys
+sys.path.append('/Users/jits/git/Machine-Learning/')
+from actorcritic_new.map import Map
 
 def main(args):
-	register(
-		id='FrozenLake-v3',
-		entry_point='gym.envs.toy_text:FrozenLakeEnv',
-		kwargs={'map_name': '4x4', 'is_slippery': False}
-	)
-	pos_actions = [" LEFT  ", " DOWN  ", " RIGHT ", "  UP   "]
-
-	# env = gym.make('FrozenLakeNotSlippery-v0')
-
-	# max_q_size = 50
-	# env = Map(max_q_size)
-	# n_input = env.state_size
-	# n_output = env.action_size
-	env = gym.make('FrozenLake-v3')
+	max_q_size = 50
+	traffic_map = Map(max_q_size)
+	env = traffic_map
 
 	tf.reset_default_graph()
 
 	# ----- parameters -----
 
 	# number of input units
-	n_input = 16
+	n_input = env.state_size
 
 	# number of output units
-	n_output = 4
+	n_output = env.action_size
 
 	# set number of hidden units as mean of input units and output units
 	n_hidden = int(np.ceil(np.mean([n_input, n_output])))
 
 	# learning rate
-	n = 0.1
+	n = 0.0001
 
 	# number of steps per epoch
 	n_time_steps = 200
 
 	# number of epochs
-	num_episodes = 10000
+	num_episodes = 100
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.9
+	y = 0.5
 
 	# epsilon
 	e = 1.
@@ -89,10 +77,11 @@ def main(args):
 	r_list = []
 	with tf.Session() as sess:
 		sess.run(init)
-		finish_flag = False
+		error_flag = False
 		for i in tqdm(range(num_episodes)):
-			# if finish_flag:
-			# 	break
+			if error_flag:
+				print("Q_values contained 'nan'")
+				break
 			# Reset environment and get first new observation
 			s = env.reset()
 			r_all = 0
@@ -103,99 +92,57 @@ def main(args):
 
 				t += 1
 				# Choose an action by greedily (with e chance of random action) from the Q-network
-				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, n_input)})
-				# print("Q-values of state 14 = {0}".format(all_q))
-				# if s == 14:
-				# 	print("Q-values of state {0} = {1}".format(s, all_q))
-
-				if np.random.rand(1) < e:
-					a[0] = env.action_space.sample()
-				# Get new state and reward from environment
-				s1, r, d, _ = env.step(a[0])
-				r_all += r
-				if r > 0 and e == 0:
-					# print("reached goal")
-					finish_flag = True
+				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s)})
+				if contains_nan(all_q):
+					error_flag = True
 					break
+				if np.random.rand(1) < e:
+					# a[0] = env.action_space.sample()
+					a[0] = np.random.randint(n_output)
+				# Get new state and reward from environment
+				s1, r, d, _ = env.step(a[0], t)
+				r_all += r
 				if d:
 					# Reduce chance of random action as we train the model.
-
 					# exploitation at the last 10% of episodes
 					if i > 0.9 * num_episodes:
 						e = 0
 					else:
-						e = max(min_e, e - 1 / num_episodes)
+						e = max(min_e, e - 2 / (num_episodes * n_time_steps))
 				# Obtain the Q' values by feeding the new state through our network
-				Q1 = sess.run(output_layer, feed_dict={input_layer: get_state(s1, n_input)})
+				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1)})
 				# Obtain maxQ' and set our target value for chosen action.
-				maxQ1 = np.max(Q1)
+				max_new_q = np.max(new_q)
 				target_q = all_q
 
-				if d:
-					if r > 0:
-						target_q[0, a[0]] = r
-					else:
-						target_q[0, a[0]] = 0
-				else:
-					target_q[0, a[0]] = r + y * maxQ1
-				# if s == 14:
-				# 	print("Max q1 = {0}".format(maxQ1))
-				# 	print("Target Q-values of state {0},{1} = {2}".format(s, s1, target_q))
+				target_q[0, a[0]] = r + y * max_new_q
 
 				# Train our network using target and predicted Q values
-				_, = sess.run([update_model], feed_dict={input_layer: get_state(s, n_input), next_q: target_q})
+				_, = sess.run([update_model], feed_dict={input_layer: get_state(s), next_q: target_q})
 
-				# if s == 14:
-				# 	a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, n_input)})
-				# 	print("new Q-values of state {0} = {1}".format(s, all_q))
-				if d:
-					break
 				s = s1
 
 			r_list.append(r_all)
 			e_list.append(e)
 
-		dim = int(np.sqrt(n_input))
-
-		for row in range(dim):
-			for col in range(dim):
-				state = row * dim + col
-				action, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(state, n_input)})
-				print("Q-values of state {0} = {1}".format(state, all_q))
-
-		for row in range(dim):
-			this_row = ""
-			for col in range(dim):
-				state = row * dim + col
-				# print("state = {0}".format(state))
-				action, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(state, n_input)})
-				this_row = this_row + pos_actions[action[0]]
-			print(this_row)
-
-		cont = input("Continue?")
-		d = False
-		s = env.reset()
-		while not d and not cont == 'n':
-			print("state = {0}".format(s))
-			action, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, n_input)})
-			print("perform action {0}".format(pos_actions[action[0]]))
-
-			s1, r, d, _ = env.step(action[0])
-			print("new state = {0}".format(s1))
-			s = s1
-			cont = input("Continue? (y/n) -- ")
-
-		print("Percent of successful episodes: {0:.2f}%".format(100 * (sum(r_list[int(np.ceil(0.9*num_episodes)):]) / (0.1*num_episodes))))
-
-		plt.plot(np.arange(len(moving_average(r_list, 100))), moving_average(r_list, 100), 'b', np.arange(len(e_list)), e_list, 'r--')
+		plt.plot(np.arange(len(moving_average(r_list, 5))), moving_average(r_list, 5), 'b', np.arange(len(e_list)), e_list, 'r--')
 
 		plt.show()
 
 
-def get_state(s, n_input):
+def contains_nan(all_q):
+	for number in all_q[0]:
+		if np.isnan(number):
+			return True
+	return False
+
+
+def get_state(s):
 	# returns input vector
-	# currently the state is a zero-vector with a 1 for the active state
-	return np.identity(n_input)[s:s + 1]
+	state = np.identity(len(s))[0:1]
+	for i in range(len(state)):
+		state[i] = s[i]
+	return state
 
 def moving_average(given_list, N):
 	cumsum, moving_aves = [0], []
