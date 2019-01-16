@@ -49,7 +49,7 @@ def main(args):
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.5
+	y = 0.9
 
 	# epsilon
 	e = 1.
@@ -63,19 +63,20 @@ def main(args):
 	# initialize weights
 	hidden_weights = tf.Variable(tf.random_uniform([n_input, n_hidden], 0, 0.01))
 	output_weights = tf.Variable(tf.random_uniform([n_hidden, n_output], 0, 0.01))
-	# output_weights = tf.Variable(tf.random_uniform([n_hidden + 1, n_output], 0, 0.01))
+
+	# initialize bias
+	hidden_bias = tf.Variable(tf.random_normal([n_hidden]))
+	output_bias = tf.Variable(tf.random_normal([n_output]))
 
 	# Construct model
-	# hidden_layer = tf.matmul(input_layer, hidden_weights)
-	# output_layer = tf.matmul(hidden_layer, output_weights)
-	# output_layer = tf.matmul(tf.matmul(input_layer, hidden_weights), output_weights)
-	output_layer = tf.matmul(tf.nn.relu(tf.matmul(input_layer, hidden_weights)), output_weights)
+	hidden_layer = tf.nn.relu(tf.add(tf.matmul(input_layer, hidden_weights), hidden_bias))
+	output_layer = tf.add(tf.matmul(hidden_layer, output_weights), output_bias)
 	predict = tf.argmax(output_layer, 1)
 
 	# Initialize next Q-value
 	next_q = tf.placeholder(shape=[1, n_output], dtype=tf.float32)
 
-	# Loss is defined as the sum of squares of the difference between target and precited Q-values
+	# Loss is defined as the sum of squares of the difference between target and predicted Q-values
 	loss = tf.reduce_sum(tf.square(next_q - output_layer))
 
 	# Initialize Model
@@ -84,8 +85,8 @@ def main(args):
 	init = tf.global_variables_initializer()
 
 	# create lists to contain total rewards and steps per episode
-	jList = []
-	rList = []
+	e_list = []
+	r_list = []
 	with tf.Session() as sess:
 		sess.run(init)
 		finish_flag = False
@@ -113,20 +114,17 @@ def main(args):
 				s1, r, d, _ = env.step(a[0])
 				r_all += r
 				if r > 0 and e == 0:
-					print("reached goal")
+					# print("reached goal")
 					finish_flag = True
 					break
 				if d:
 					# Reduce chance of random action as we train the model.
-					e = max(min_e, e - 1/num_episodes)
-					# exploitation at the last 30% of episodes
-					if i > 0.7 * num_episodes:
-						e = 0
 
-				# elif s1 == s:
-				# 	r -= 2
-				# else:
-				# 	r -= 1
+					# exploitation at the last 10% of episodes
+					if i > 0.9 * num_episodes:
+						e = 0
+					else:
+						e = max(min_e, e - 1 / num_episodes)
 				# Obtain the Q' values by feeding the new state through our network
 				Q1 = sess.run(output_layer, feed_dict={input_layer: get_state(s1, n_input)})
 				# Obtain maxQ' and set our target value for chosen action.
@@ -154,17 +152,24 @@ def main(args):
 					break
 				s = s1
 
-			rList.append(r_all)
+			r_list.append(r_all)
+			e_list.append(e)
 
-		for row in range(4):
+		dim = int(np.sqrt(n_input))
+
+		for row in range(dim):
+			for col in range(dim):
+				state = row * dim + col
+				action, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(state, n_input)})
+				print("Q-values of state {0} = {1}".format(state, all_q))
+
+		for row in range(dim):
 			this_row = ""
-			for col in range(4):
-				state = row * 4 + col
+			for col in range(dim):
+				state = row * dim + col
 				# print("state = {0}".format(state))
 				action, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(state, n_input)})
 				this_row = this_row + pos_actions[action[0]]
-				# print(pos_actions[action[0]])
-				# print("Q-values of state {0} = {1}".format(state, all_q))
 			print(this_row)
 
 		cont = input("Continue?")
@@ -180,9 +185,9 @@ def main(args):
 			s = s1
 			cont = input("Continue? (y/n) -- ")
 
-		print("Percent of successful episodes: {0:.2f}%".format(100 * (sum(rList[int(np.ceil(0.8*num_episodes)):]) / (0.2*num_episodes))))
+		print("Percent of successful episodes: {0:.2f}%".format(100 * (sum(r_list[int(np.ceil(0.9*num_episodes)):]) / (0.1*num_episodes))))
 
-		plt.plot(moving_average(rList, 100))
+		plt.plot(np.arange(len(moving_average(r_list, 100))), moving_average(r_list, 100), 'b', np.arange(len(e_list)), e_list, 'r--')
 
 		plt.show()
 
