@@ -7,8 +7,8 @@ from tqdm import tqdm
 import sys
 
 # directory in which the folder /actorcritic_new is stored
-sys.path.append('/Users/jits/git/Machine-Learning/')
-from actorcritic_new.map import Map
+sys.path.append('/Users/jits/git/Machine-Learning/actorcritic_new')
+from map import Map
 
 def main(args):
 	max_q_size = 50
@@ -29,7 +29,7 @@ def main(args):
 	n_hidden = int(np.ceil(np.mean([n_input, n_output])))
 
 	# learning rate
-	n = 0.001
+	n = 0.01
 
 	# number of steps per epoch
 	n_time_steps = 3000
@@ -39,7 +39,7 @@ def main(args):
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.5
+	y = 0.2
 
 	# epsilon
 	e = 1.
@@ -68,6 +68,8 @@ def main(args):
 
 	# Loss is defined as the sum of squares of the difference between target and predicted Q-values
 	loss = tf.reduce_sum(tf.square(next_q - output_layer))
+	# loss = tf.reduce_sum(next_q - output_layer)
+
 
 	# Initialize Model
 	trainer = tf.train.GradientDescentOptimizer(learning_rate=n)
@@ -91,11 +93,10 @@ def main(args):
 			# The Q-Network
 			t = 0
 			while t < n_time_steps:
-
 				t += 1
 				# Choose an action by greedily (with e chance of random action) from the Q-network
-				print(s)
-				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s)})
+				# print(s)
+				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, max_q_size)})
 				if contains_nan(all_q):
 					error_flag = True
 					break
@@ -113,15 +114,15 @@ def main(args):
 					else:
 						e = max(min_e, e - 2 / (num_episodes * n_time_steps))
 				# Obtain the Q' values by feeding the new state through our network
-				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1)})
+				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1, max_q_size)})
 				# Obtain maxQ' and set our target value for chosen action.
 				max_new_q = np.max(new_q)
 				target_q = all_q
 
-				target_q[0, a[0]] = r + y * max_new_q
+				target_q[0, a[0]] = ((r-5)/10) + y * max_new_q
 
 				# Train our network using target and predicted Q values
-				_, = sess.run([update_model], feed_dict={input_layer: get_state(s), next_q: target_q})
+				_, = sess.run([update_model], feed_dict={input_layer: get_state(s, max_q_size), next_q: target_q})
 
 				s = s1
 
@@ -140,11 +141,12 @@ def contains_nan(all_q):
 	return False
 
 
-def get_state(s):
+def get_state(s, max_q_size):
 	# returns input vector
 	state = np.identity(len(s))[0:1]
 	for i in range(len(state)):
-		state[i] = s[i]
+		state[i] = s[i]/max_q_size
+	# print(state)
 	return state
 
 def moving_average(given_list, N):
@@ -156,7 +158,6 @@ def moving_average(given_list, N):
 			# can do stuff with moving_ave here
 			moving_aves.append(moving_ave)
 	return moving_aves
-
 
 
 if __name__ == "__main__":

@@ -79,7 +79,7 @@ class Map:
 		#self.step(action)
 
 	def time_step(self):
-		n_cars = 4
+		n_cars = 10
 		for c in range(n_cars):
 			start = choice(border_names)
 			end = choice(border_names)
@@ -189,7 +189,7 @@ class Map:
 	#	self.model_reward = self.episode_reward
 		#self.state = self.get_intersection_state()
 		for index,intersection in enumerate(self.intersections):
-			state,reward = (intersection.step(a[index]))
+			state,reward = (intersection.step())
 			self.global_state.extend(state)
 			self.global_reward += reward
 		done = True
