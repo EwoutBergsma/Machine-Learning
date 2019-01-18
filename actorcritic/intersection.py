@@ -191,9 +191,9 @@ class Intersection(Node):
 		queue_waiting_times = [0,0,0,0]
 		for i,q in enumerate(self.qs):
 			q_waiting_time = q.iterate_queue()
-			print(q_waiting_time)
+			# print(q_waiting_time)
 			queue_waiting_times[i] = q_waiting_time
-			print(q_waiting_time)
+			# print(q_waiting_time)
 		#print("\n")
 		return queue_waiting_times
 

@@ -4,6 +4,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+
 import sys
 
 # directory in which the folder /actorcritic_new is stored
@@ -29,17 +30,17 @@ def main(args):
 	n_hidden = int(np.ceil(np.mean([n_input, n_output])))
 
 	# learning rate
-	n = 0.01
+	n = 0.0001
 
 	# number of steps per epoch
 	n_time_steps = 3000
 
 	# number of epochs
-	num_episodes = 200
+	num_episodes = 10
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.2
+	y = 0.9
 
 	# epsilon
 	e = 1.
