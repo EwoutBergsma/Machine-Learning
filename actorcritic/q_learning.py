@@ -8,6 +8,7 @@ import sys
 
 # directory in which the folder /actorcritic_new is stored
 sys.path.append('/Users/jits/git/Machine-Learning/')
+#sys.path.append('/Users/klemen/Desktop/Uni 2018-2019/I-B/machine-learning/project/')
 from actorcritic_new.map import Map
 
 def main(args):
