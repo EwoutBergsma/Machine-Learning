@@ -30,17 +30,17 @@ def main(args):
 	n_hidden = int(np.ceil(np.mean([n_input, n_output])))
 
 	# learning rate
-	n = 0.0001
+	n = 0.0005
 
 	# number of steps per epoch
 	n_time_steps = 3000
 
 	# number of epochs
-	num_episodes = 10
+	num_episodes = 100
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.9
+	y = 0.98
 
 	# epsilon
 	e = 1.
@@ -113,7 +113,7 @@ def main(args):
 					if i > 0.9 * num_episodes:
 						e = 0
 					else:
-						e = max(min_e, e - 2 / (num_episodes * n_time_steps))
+						e = max(min_e, e - (2 / (num_episodes * n_time_steps)))
 				# Obtain the Q' values by feeding the new state through our network
 				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1, max_q_size)})
 				# Obtain maxQ' and set our target value for chosen action.
