@@ -30,17 +30,17 @@ def main(args):
 	n_hidden = int(np.ceil(np.mean([n_input, n_output])))
 
 	# learning rate
-	n = 0.0005
+	n = 0.01
 
 	# number of steps per epoch
-	n_time_steps = 3000
+	n_time_steps = 5000
 
 	# number of epochs
-	num_episodes = 100
+	num_episodes = 10
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.98
+	y = 0.2
 
 	# epsilon
 	e = 1.
@@ -52,15 +52,15 @@ def main(args):
 	input_layer = tf.placeholder(shape=[1, n_input], dtype=tf.float32)
 
 	# initialize weights
-	hidden_weights = tf.Variable(tf.random_uniform([n_input, n_hidden], 0, 0.01))
-	output_weights = tf.Variable(tf.random_uniform([n_hidden, n_output], 0, 0.01))
+	hidden_weights = tf.Variable(tf.random_uniform([n_input, n_hidden], -0.5, 0.5))#0.01))
+	output_weights = tf.Variable(tf.random_uniform([n_hidden, n_output], -0.5, 0.5))#0.01))
 
 	# initialize bias
 	hidden_bias = tf.Variable(tf.random_normal([n_hidden]))
 	output_bias = tf.Variable(tf.random_normal([n_output]))
 
 	# Construct model
-	hidden_layer = tf.nn.relu(tf.add(tf.matmul(input_layer, hidden_weights), hidden_bias))
+	hidden_layer = tf.nn.sigmoid(tf.add(tf.matmul(input_layer, hidden_weights), hidden_bias))
 	output_layer = tf.add(tf.matmul(hidden_layer, output_weights), output_bias)
 	predict = tf.argmax(output_layer, 1)
 
@@ -80,6 +80,8 @@ def main(args):
 	# create lists to contain total rewards and steps per episode
 	e_list = []
 	r_list = []
+
+	a_list = []
 	with tf.Session() as sess:
 		sess.run(init)
 		error_flag = False
@@ -97,7 +99,8 @@ def main(args):
 				t += 1
 				# Choose an action by greedily (with e chance of random action) from the Q-network
 				# print(s)
-				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, max_q_size)})
+				a, all_q = sess.run([predict, output_layer], feed_dict={input_layer: get_state(s, max_q_size, n_time_steps)})
+				a_list.append(a[0])
 				if contains_nan(all_q):
 					error_flag = True
 					break
@@ -113,26 +116,45 @@ def main(args):
 					if i > 0.9 * num_episodes:
 						e = 0
 					else:
-						e = max(min_e, e - (2 / (num_episodes * n_time_steps)))
+						e = max(min_e, e - 2 / (num_episodes * n_time_steps))
+
 				# Obtain the Q' values by feeding the new state through our network
-				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1, max_q_size)})
+				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1, max_q_size, n_time_steps)})
 				# Obtain maxQ' and set our target value for chosen action.
 				max_new_q = np.max(new_q)
 				target_q = all_q
 
-				target_q[0, a[0]] = ((r-5)/10) + y * max_new_q
-
-				# Train our network using target and predicted Q values
-				_, = sess.run([update_model], feed_dict={input_layer: get_state(s, max_q_size), next_q: target_q})
+				if simulation_stuck(s1, max_q_size):
+					# Train our network using target and predicted Q values
+					print("simulation stuck at t = {0}".format(t))
+					target_q[0, a[0]] = -100
+					_, = sess.run([update_model], feed_dict={input_layer: get_state(s, max_q_size, n_time_steps), next_q: target_q})
+					break
+				else:
+					# Train our network using target and predicted Q values
+					target_q[0, a[0]] = ((r-5)/10) + y * max_new_q
+					_, = sess.run([update_model], feed_dict={input_layer: get_state(s, max_q_size, n_time_steps), next_q: target_q})
 
 				s = s1
 
 			r_list.append(r_all)
 			e_list.append(e)
 
-		plt.plot(np.arange(len(moving_average(r_list, 5))), moving_average(r_list, 5), 'b', np.arange(len(e_list)), e_list, 'r--')
-
+		fig1, ax1 = plt.plot(np.arange(len(moving_average(r_list, 5))), moving_average(r_list, 5), 'b', np.arange(len(e_list)), e_list, 'r--')
 		plt.show()
+		n, bins, patches = plt.hist(a_list, bins=n_output)
+		plt.show()
+
+
+def simulation_stuck(s, max_q_size):
+	full_qs = 0
+	for i in range(len(s)):
+		if i % 8 < 4 and s[i] >= max_q_size:
+			full_qs += 1
+
+	if full_qs >= 12:
+		return True
+	return False
 
 
 def contains_nan(all_q):
@@ -142,12 +164,14 @@ def contains_nan(all_q):
 	return False
 
 
-def get_state(s, max_q_size):
+def get_state(s, max_q_size, n_time_steps):
 	# returns input vector
 	state = np.identity(len(s))[0:1]
-	for i in range(len(state)):
-		state[i] = s[i]/max_q_size
-	# print(state)
+	for i in range(len(state[0])):
+		if i % 8 < 4:
+			state[0][i] = max(min(s[i]/max_q_size, 1), 0)
+		else:
+			state[0][i] = max(min(s[i]/n_time_steps, 1), 0)
 	return state
 
 def moving_average(given_list, N):

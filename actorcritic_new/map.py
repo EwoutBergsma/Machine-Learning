@@ -25,7 +25,7 @@ class Map:
 		# self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 		# self.observation_space = 
 		#self.action_size = 7
-		self.action_size = 210
+		self.action_size = 2401
 		#self.state_size = 8
 		self.state_size = 32
 		#self.state_size = 96
