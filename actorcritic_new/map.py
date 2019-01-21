@@ -1,7 +1,7 @@
 from intersection import Intersection
 from border_node import BorderNode
 from nodes import border_data, intersection_data
-from global_traffic_light_combinations import combinations
+from new_global_traffic_light_combinations import combinations
 from random import choice, randint
 from paths import path_dict, border_names
 from car import Car
