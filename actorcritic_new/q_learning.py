@@ -40,7 +40,7 @@ def main(args):
 
 	# Set reinforcement learning parameters
 	# gamma
-	y = 0.2
+	y = 0.1
 
 	# epsilon
 	e = 1.
