@@ -17,6 +17,7 @@ from car import Car
 from paths import path_dict, border_names
 from tqdm import tqdm
 from car import Car
+from q_learning import moving_average
 
 tf.enable_eager_execution()
 
@@ -207,7 +208,7 @@ class MasterAgent():
         break
     [w.join() for w in workers]
 
-    plt.plot(moving_average_rewards)
+    plt.plot(np.arange(len(moving_average(moving_average_rewards, 10))), moving_average(moving_average_rewards, 10), 'b')
     plt.ylabel('Moving average ep reward')
     plt.xlabel('Step')
     plt.savefig(os.path.join(self.save_dir,
@@ -282,7 +283,7 @@ class Worker(threading.Thread):
     self.opt = opt
     self.local_model = ActorCriticModel(self.state_size, self.action_size)
     self.worker_idx = idx
-    self.max_q_size = 100000
+    self.max_q_size = 50
     self.traffic_map = Map(self.max_q_size)
     self.env = self.traffic_map
     self.save_dir = save_dir
@@ -331,7 +332,7 @@ class Worker(threading.Thread):
        # print("Time step: ", t)
 
 
-        
+
 
        # self.time_step()
 

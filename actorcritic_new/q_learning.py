@@ -33,14 +33,15 @@ def main(args):
 	n = 0.01
 
 	# number of steps per epoch
-	n_time_steps = 5000
+	n_time_steps = 3000
 
 	# number of epochs
-	num_episodes = 10
+	num_episodes = 250
 
 	# Set reinforcement learning parameters
 	# gamma
 	y = 0.1
+	max_y = 0.95
 
 	# epsilon
 	e = 1.
@@ -80,6 +81,7 @@ def main(args):
 	# create lists to contain total rewards and steps per episode
 	e_list = []
 	r_list = []
+	t_list = []
 
 	a_list = []
 	with tf.Session() as sess:
@@ -110,13 +112,6 @@ def main(args):
 				# Get new state and reward from environment
 				s1, r, d, _ = env.step(a[0], t)
 				r_all += r
-				if d:
-					# Reduce chance of random action as we train the model.
-					# exploitation at the last 10% of episodes
-					if i > 0.9 * num_episodes:
-						e = 0
-					else:
-						e = max(min_e, e - 2 / (num_episodes * n_time_steps))
 
 				# Obtain the Q' values by feeding the new state through our network
 				new_q = sess.run(output_layer, feed_dict={input_layer: get_state(s1, max_q_size, n_time_steps)})
@@ -136,11 +131,20 @@ def main(args):
 					_, = sess.run([update_model], feed_dict={input_layer: get_state(s, max_q_size, n_time_steps), next_q: target_q})
 
 				s = s1
+			# Reduce chance of random action as we train the model.
+			# exploitation at the last 30% of episodes
+			if i > 0.7 * num_episodes:
+				e = 0
+			else:
+				e = max(min_e, e - 1 / (0.7 * num_episodes))
+
+			y = min(max_y, y + 2 / num_episodes)
 
 			r_list.append(r_all)
 			e_list.append(e)
+			t_list.append(t)
 
-		fig1, ax1 = plt.plot(np.arange(len(moving_average(r_list, 5))), moving_average(r_list, 5), 'b', np.arange(len(e_list)), e_list, 'r--')
+		fig1, ax1 = plt.plot(np.arange(len(moving_average(r_list, 10))), moving_average(r_list, 10),'b',np.arange(len(moving_average(t_list, 10))), moving_average(t_list, 10), 'g')
 		plt.show()
 		n, bins, patches = plt.hist(a_list, bins=n_output)
 		plt.show()
