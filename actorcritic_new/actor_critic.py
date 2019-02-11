@@ -326,13 +326,9 @@ class Worker(threading.Thread):
       time_count = 0
       done = False
 
-      n_time_steps = 1000
+      n_time_steps = 3000
       #print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
-       # print("Time step: ", t)
-
-
-
 
        # self.time_step()
 
