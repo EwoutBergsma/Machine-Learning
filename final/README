@@ -1,0 +1,26 @@
+README---Comparison of Reinforcement Learning Algorithms for Optimization of Traffic Flow
+
+The code contains implementations for two algorithms, Q-learning (q_learning.py) and the A3C Actor Critic algorithm (actor_critic.py). The rest of the files represent the traffic simulation and some static resources of the program, for example the predefined legal traffic light combinations and the traffic map of the environment.
+
+--------------------------------------------------------------------------------------------------
+
+
+The code can be run as following:
+
+-Q-Learning-
+Training the algorithm: python3 q_learning.py --train [--max-eps <value>]
+Running trained model: python3 q_learning.py
+
+-The Actor Critic algorithm-
+Training A3C: python3 actor_critic.py --train [--max-eps <value>]
+Running trained model: python3 actor_critic.py
+
+-Obtaining baseline by random agent-
+python3 q_learning.py --algorithm random [--max-eps <value>]
+python3 actor_critic.py --algorithm random [--max-eps <value>]
+
+
+There are some more arguments that the program can parse, e.g. for learning rate, update frequency and discount factor, but our experiments can be reproduced with the default values. If you already have python3 as default python version, you can use the argument python instead of python3 when running the program.
+
+--------------------------------------------------------------------------------------------------
+This project was completed by Sofie Lovdal, Jits Schilperoort, Klemen Voncina and Thomas van Dongen as a part of the RUG Master course Machine Learning 2019.
