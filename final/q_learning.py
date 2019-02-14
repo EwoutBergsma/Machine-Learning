@@ -9,7 +9,7 @@ from tqdm import tqdm
 import sys
 
 # directory in which the folder /actorcritic_new is stored
-sys.path.append('/Users/jits/git/Machine-Learning/actorcritic_new')
+sys.path.append('/Users/jits/git/Machine-Learning/final')
 from map import Map
 
 def main(args):
@@ -37,7 +37,7 @@ def main(args):
 	n_time_steps = 1000
 
 	# number of epochs
-	num_episodes = 2
+	num_episodes = 100
 
 	# Set reinforcement learning parameters
 	# gamma
@@ -178,10 +178,7 @@ def get_state(s, max_q_size, n_time_steps):
 	# returns input vector
 	state = np.identity(len(s))[0:1]
 	for i in range(len(state[0])):
-		if i % 8 < 4:
 			state[0][i] = max(min(s[i]/max_q_size, 1), 0)
-		else:
-			state[0][i] = max(min(s[i]/n_time_steps, 1), 0)
 	return state
 
 def moving_average(given_list, N):
