@@ -22,5 +22,11 @@ python3 actor_critic.py --algorithm random [--max-eps <value>]
 
 There are some more arguments that the program can parse, e.g. for learning rate, update frequency and discount factor, but our experiments can be reproduced with the default values. If you already have python3 as default python version, you can use the argument python instead of python3 when running the program.
 
+=============
+Dependencies
+=============
+- tqdm (used for progress bars)
+- Tensorflow
+
 --------------------------------------------------------------------------------------------------
 This project was completed by Sofie Lovdal, Jits Schilperoort, Klemen Voncina and Thomas van Dongen as a part of the RUG Master course Machine Learning 2019.
