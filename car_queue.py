@@ -1,18 +1,25 @@
 from collections import deque
 
-#Represents three lanes of the same incoming direction in an intersection
+
 class CarQueue:
 	def __init__(self, max_size):
 
 		if max_size >= 0:
+			#self.q = deque(maxlen=max_size)
 			self.q = list()
 			self.maxlen = max_size
 		else:
+			#self.q = deque()
 			self.q = list()
 			self.maxlen = 9999999999
+		#self.maxlen = max_size
 
 	def add_car(self, car):
+		#sprint(self.maxlen)
 		if self.maxlen is None or len(self.q) < self.maxlen:
+
+			#self.q.appendleft(car)
+			#self.q = [car] + self.q 
 			self.q.append(car)
 			return True
 		return False
@@ -38,10 +45,15 @@ class CarQueue:
 		if 2 in green_directions:
 			possible_directions.append((car_position + 3) % 4)
 
+		#print("POSSIBLE DIRECTION: ", possible_direction)
 		for index,car in enumerate(self.q):
+			#print("TEST")
+			#car_direction = car.get_directions(time_step, x, y)[0]
 			car_directions = car.get_directions( x, y)
+			#print("CAR  DIRECTION: ", car_direction)
 			#if (possible_direction == car_direction and neighborQueues[car_direction].number_of_cars() < self.maxlen):
 			if any(x in possible_directions for x in car_directions):
+				#print("Index: ", index)
 				returned_car = self.q.pop(index)
 				return returned_car
 			else:

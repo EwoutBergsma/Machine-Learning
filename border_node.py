@@ -35,6 +35,7 @@ class BorderNode(Node):
 
 	@staticmethod
 	def car_leaves_system(car):
+		#print("CAR LEFT")
 		Car.removed_cars += 1
 		return True
 

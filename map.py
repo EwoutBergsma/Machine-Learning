@@ -1,7 +1,8 @@
 from intersection import Intersection
 from border_node import BorderNode
 from nodes import border_data, intersection_data
-from new_global_traffic_light_combinations import combinations
+from global_traffic_light_combinations import combinations
+#from new_global_traffic_light_combinations import combinations
 from random import choice, randint
 from paths import path_dict, border_names
 from car import Car
@@ -21,9 +22,15 @@ class Map:
 		self.global_state = []
 		self.global_reward = 0
 
-		self.action_size = 2401
-		self.state_size = 16 #the state is now the number of cars per queue, for 4 intersections
-	
+		# self.action_space = combinations
+		# self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+		# self.observation_space = 
+		#self.action_size = 7
+		self.action_size = 210
+		#self.action_size = 2401
+		#self.state_size = 8
+		self.state_size = 32
+		#self.state_size = 96
 
 
 	def set_connections(self):
@@ -63,11 +70,18 @@ class Map:
 			border.update_cars(time_step)
 
 	def update_traffic_lights(self,action):
+		#action = choice(combinations)
 		for index,intersection in enumerate(self.intersections):
+			#single_action = choice(combinations)
+			#print("SINGLE ACTION: ")
+			#print(single_action)
 			intersection.update_traffic_lights(action[index])
+			#action.append(single_action)
+
+		#self.step(action)
 
 	def time_step(self):
-		n_cars = 10
+		n_cars = 5	
 		for c in range(n_cars):
 			start = choice(border_names)
 			end = choice(border_names)
@@ -129,38 +143,65 @@ class Map:
 		return "000"
 
 	def reset(self):
+		#print("resetting")
 		for intersection in self.intersections:
 			intersection.reset()
 		for border in self.borders:
 			border.reset()
-		
-		state = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+		#state = [0,0,0,0,0,0,0,0]
+		state = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 		Car.reset_number_of_cars(Car)
 		return state
 
 	def step(self,action, t):
-		#spawn new cars
-		self.time_step()
-		#parse given action
-		a = combinations[action]
 		
-		#reset reward for this step
+
+		#self.display_map()
+
+		self.time_step()
+
+		
+		#print(a)
+		#if (t % 3 == 0):
+		#done = True
+		#old_global_reward = self.global_reward
+		#old_global_state = self.global_state
+		#print("REWARD BEFORE RESET: ", self.global_reward)
+		a = combinations[action]
+		#print(a)
+		#if (self.global_reward == 0):
+		#	self.display_map()
+
+		#print("Reward: ", self.global_reward)
 		for intersection in self.intersections:
 			intersection.reset_reward()
+		
 		self.global_reward = 0
-
-		#update traffic lights and move cars
 		self.update_traffic_lights(a)
-		self.update_cars(t)
 
 		self.global_state = []
+
+		#return np.array(old_global_state),old_global_reward, done, {}
+
+		self.update_cars(t)
+		
+
+		#print(a)
+
+	#	self.model_reward = self.episode_reward
+		#self.state = self.get_intersection_state()
 		for index,intersection in enumerate(self.intersections):
-			state,reward = intersection.step()
+			state,reward = (intersection.step())
 			self.global_state.extend(state)
 			self.global_reward += reward
 		done = True
+		#print(global_state, global_reward, "\n")
+		
+		#self.update_cars(t);
 
 		return np.array(self.global_state),self.global_reward, done, {}
+		#return None
+		#return np.array(old_global_state),old_global_reward, done, {}
 
 	def display_map(self):
 		print("        {0}  000       {1}  000        ".format(self.cars_at("I", "I"), self.cars_at("II", "II")))

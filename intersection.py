@@ -3,6 +3,7 @@ from car_queue import CarQueue
 from traffic_light import TrafficLight
 from traffic_light_combinations import combinations
 from random import choice
+from state import State
 import numpy as np
 
 # Intersection node, connects to four other nodes in each direction
@@ -30,6 +31,8 @@ class Intersection(Node):
 		else: 
 			self.qs[direction].add_car(car)
 			return True
+		#else:  # the queue of the direction it wants to go to is full
+		#	return False
 
 	def get_direction(self, origin):
 		for i in range(4):
@@ -39,43 +42,65 @@ class Intersection(Node):
 		return None
 
 	def update_cars(self, time_step):
-		for i in range(self.cars_per_iteration):
+		#episode_reward = self.reward
+		#if time_step % 10 == 0:
+		#	pass
+			#print(self.episode_reward)	
+
+		for i in range(5):
 			for j in range(4):
-				self.move_car(j,time_step)
+				self.move_car(j)
 
 	def reset_reward(self):
 		self.episode_reward = 0
 
+
+			
 	def update_traffic_lights(self,action):
+		#self.action = []
+		#for traffic_light in self.traffic_lights:
+		#	self.action.append(traffic_light.get_combination())
+
+		#self.step(action)
+
+		#self.model_reward = self.episode_reward
+		#self.state = self.get_intersection_state()
+		
+
 		for i in range(4):
 			self.traffic_lights[i].update(action[i])
+		#print(self.reward)
+
+		#print(self.state, self.model_reward, "\n")
+
+
+	def get_state_reward(self):
+		return 
+
 
 	def step(self):
+		#self.model_reward = self.episode_reward
 		self.state = self.get_intersection_state()
+		#print(self.state, self.model_reward, "\n")
+
 		return np.array(self.state), self.episode_reward
 
-
+	"""
 	def move_car(self, i, time_step):
-		q = self.qs[i]
-		traffic_light = self.traffic_lights[i]
-		combinations = traffic_light.get_combination()
-		green_directions = []
-		for index, combination in enumerate(combinations):
-			if combination:
-				green_directions.append(index)
-			# green_direction = index
-		# car = q.get_car_for_direction(green_directions, i, time_step, self.x, self.y)
-		car = q.get_car()
-		if car is not None:
-			# direction = car.get_directions(time_step, self.x, self.y)[0]
-			# neighbour = self.neighbours[direction]
-			# self.neighbours[direction].transfer_car(self, car)
+		#if time_step % 3 == 0:
+		#	self.episode_reward = 0
 
+		q = self.qs[i]
+		#q.get_direction_amounts(time_step, self.x, self.y)
+		traffic_light = self.traffic_lights[i]
+	#	car = q.get_car()  # pop car from queue
+		car = q.get_car_for_direction(i)
+		if car is not None:  # there was a car in the queue
 			if not car.can_move(time_step):
 				# car has already moved
 				self.put_car_back(q, car, time_step)
 			else:
-				directions = car.get_directions(self.x, self.y)  # directions of the car
+				directions = car.get_directions(time_step, self.x, self.y)  # directions of the car
 				car_moved = False
 				for direction in directions:
 					# if traffic_light.red(i, direction) or not self.neighbours[direction].transfer_car(self, car):
@@ -84,11 +109,34 @@ class Intersection(Node):
 						if traffic_light.green(i, direction) and self.neighbours[direction].transfer_car(self, car):
 							# car was moved towards direction
 							car_moved = True
+							car.reset_waiting_time() # reset the waiting time since the car has moved
+							#self.reward +=1 #a car passing trough is a reward for the intersection
 							self.episode_reward += 1
-							car.set_last_move(time_step)
+
+							#print(time_step)
+
 							break
+
 				if not car_moved:
 					self.put_car_back(q, car, time_step)
+	"""
+
+	def move_car(self, i):
+		q = self.qs[i]
+		traffic_light = self.traffic_lights[i]
+		combinations = traffic_light.get_combination()
+		green_directions = []
+		for index,combination in enumerate(combinations):
+			if (combination) == True:
+				green_directions.append(index)
+
+				car = q.get_car_for_direction(green_directions, i, self.x, self.y, self.neighbours)
+				if car is not None:
+					direction = car.get_directions( self.x, self.y)[0]
+					neighbour = self.neighbours[direction]
+					if (self.neighbours[direction].transfer_car(self, car)):
+
+						self.episode_reward += 1
 
 
 		#traffic_light.green(i, direction)
@@ -125,19 +173,39 @@ class Intersection(Node):
 			cars += q.number_of_cars()
 		return cars
 
+	def get_total_waiting_time(self):
+		total_waiting_time = 0
+		queue_waiting_times = [0,0,0,0]
+		for i,q in enumerate(self.qs):
+			q_waiting_time = q.iterate_queue()
+			#print(q_waiting_time)
+			queue_waiting_times[i] = q_waiting_time
+			#print(q_waiting_time)
+		#print("\n")
+		return queue_waiting_times
+
 	def get_intersection_state(self):
 		number_of_cars_per_queue = [0,0,0,0]
+		queue_waiting_times = []
+		
+
 		for i,q in enumerate(self.qs):
 			number_of_cars_per_queue[i] = (q.number_of_cars())
+		queue_waiting_times = self.get_total_waiting_time()
 		state = []
 		state.extend(number_of_cars_per_queue)
+		state.extend(queue_waiting_times)
+	#	state = [number_of_cars_per_queue, queue_waiting_times]
 		return state
 
 	def reset(self):
 		max_q_size = 50
 		self.qs = [CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size), CarQueue(max_q_size)]
-		self.state = np.array([0,0,0,0])
+		#print(self.qs)
+		#self.state = [0,0,0,0,0,0,0,0]
+		self.state = np.array([0,0,0,0,0,0,0,0])
 		self.model_reward = 0
+		#eturn np.array(self.state)
 		return self.state
 
 	def __str__(self):

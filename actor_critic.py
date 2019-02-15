@@ -2,6 +2,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import threading
+import gym
 import multiprocessing
 import numpy as np
 from queue import Queue
@@ -14,9 +15,8 @@ from tensorflow.python import keras
 from tensorflow.python.keras import layers
 from car import Car
 from paths import path_dict, border_names
-from tqdm import tqdm
+#from tqdm import tqdm # can't use progress bar because of multithreading
 from car import Car
-from q_learning import moving_average
 
 tf.enable_eager_execution()
 
@@ -68,11 +68,15 @@ def record(episode,
     episode: Current episode
     episode_reward: Reward accumulated over the current episode
     worker_idx: Which thread (worker)
-    global_ep_reward: Global reward from episode
-    result_queue: Queue storing episode scores
+    global_ep_reward: The moving average of the global reward
+    result_queue: Queue storing the moving average of the scores
     total_loss: The total loss accumualted over the current episode
+    num_steps: The number of steps the episode took to complete
   """
-  global_ep_reward = episode_reward
+  if global_ep_reward == 0:
+    global_ep_reward = episode_reward
+  else:
+    global_ep_reward = global_ep_reward * 0.0 + episode_reward * 1.0
   """
   print(
       f"Episode: {episode} | "
@@ -88,8 +92,9 @@ def record(episode,
 
 
 class RandomAgent:
-  """Random Agent that will control the traffic lights
+  """Random Agent that will play the specified game
     Arguments:
+      env_name: Name of the environment to be played
       max_eps: Maximum number of episodes to run agent for.
   """
   def __init__(self, max_eps):
@@ -97,24 +102,47 @@ class RandomAgent:
     self.traffic_map = Map(self.max_q_size)
     self.env = self.traffic_map
     self.max_episodes = max_eps
+
+    self.global_moving_average_reward = 0
+    self.res_queue = Queue()
+
+class RandomAgent:
+  """Random Agent that will play the specified game
+    Arguments:
+      env_name: Name of the environment to be played
+      max_eps: Maximum number of episodes to run agent for.
+  """
+  def __init__(self, max_eps):
+    self.max_q_size = 50
+    self.traffic_map = Map(self.max_q_size)
+    self.env = self.traffic_map
+    self.max_episodes = max_eps
+
     self.global_moving_average_reward = 0
     self.res_queue = Queue()
 
   def run(self):
     reward_avg = 0
-    #Number of time steps per episode. Change this if needed, depends on which A3C time step settings you compare it to
-    time = 1000
+    time = 3000
     for episode in range(self.max_episodes):
       done = False
       self.env.reset()
       reward_sum = 0.0
       steps = 0
       for t in range(0,time):
-        #sample and update environment randomly
-        action = np.random.choice(self.env.action_size)
-        new_state, reward, done, _ = self.env.step(action,t)
-        reward_sum += reward
-        steps+=1
+        # Sample randomly from the action space and step
+        #time_step(traffic_map)
+
+        #if t % 10 == 0:  # update traffic lights once every 10 time steps
+          #traffic_map.update_traffic_lights()
+	  #action = np.random.choice
+          action = np.random.choice(self.env.action_size)
+          _, reward, done, _ = self.env.step(action,t)
+          reward_sum += reward
+
+        #traffic_map.update_cars(t)
+
+          steps += 1
         
       # Record statistics
       self.global_moving_average_reward = record(episode,
@@ -124,14 +152,29 @@ class RandomAgent:
                                                  self.res_queue, 0, steps)
 
       reward_avg += reward_sum
+      print(reward_sum)
     final_avg = reward_avg / float(self.max_episodes)
     print("Average score across {} episodes: {}".format(self.max_episodes, final_avg))
     return final_avg
 
 
+
 class MasterAgent():
   def __init__(self):
+    """
+    self.game_name = 'CartPole-v0'
+    save_dir = args.save_dir
+    self.save_dir = save_dir
+    if not os.path.exists(save_dir):
+      os.makedirs(save_dir)
 
+    env = gym.make(self.game_name)
+    self.state_size = env.observation_space.shape[0]
+    self.action_size = env.action_space.n
+    print("ACTION SIZE AND STATE SIZE:")
+    print(self.action_size)
+    #print(self.state_size)
+    """
     save_dir = args.save_dir
     self.save_dir = save_dir
     if not os.path.exists(save_dir):
@@ -164,9 +207,15 @@ class MasterAgent():
                       i,
                       save_dir=self.save_dir) for i in range(multiprocessing.cpu_count())]
 
+    """
     for i, worker in enumerate(workers):
       print("Starting worker {}".format(i))
       worker.start()
+    """
+    for i, worker in enumerate(workers):
+      print("Starting worker {}".format(i))
+      worker.start()
+      #break
 
     moving_average_rewards = []  # record episode reward to plot
     while True:
@@ -178,11 +227,37 @@ class MasterAgent():
     [w.join() for w in workers]
 
     plt.plot(moving_average_rewards)
-    plt.ylabel('Reward')
-    plt.xlabel('Episode')
+    plt.ylabel('Moving average ep reward')
+    plt.xlabel('Step')
     plt.savefig(os.path.join(self.save_dir,
-                             '{} A3C.png'.format("traffic")))
+                             '{} Moving Average.png'.format("traffic")))
     plt.show()
+
+  def play(self):
+    env = gym.make(self.game_name).unwrapped
+    state = env.reset()
+    model = self.global_model
+    model_path = os.path.join(self.save_dir, 'model_{}.h5'.format("traffic"))
+    print('Loading model from: {}'.format(model_path))
+    model.load_weights(model_path)
+    done = False
+    step_counter = 0
+    reward_sum = 0
+
+    try:
+      while not done:
+        env.render(mode='rgb_array')
+        policy, value = model(tf.convert_to_tensor(state[None, :], dtype=tf.float32))
+        policy = tf.nn.softmax(policy)
+        action = np.argmax(policy)
+        state, reward, done, _ = env.step(action)
+        reward_sum += reward
+        print("{}. Reward: {}, action: {}".format(step_counter, reward_sum, action))
+        step_counter += 1
+    except KeyboardInterrupt:
+      print("Received Keyboard Interrupt. Shutting down.")
+    finally:
+      env.close()
 
 
 class Memory:
@@ -226,12 +301,20 @@ class Worker(threading.Thread):
     self.opt = opt
     self.local_model = ActorCriticModel(self.state_size, self.action_size)
     self.worker_idx = idx
-    self.max_q_size = 50
+    self.max_q_size = 100000
     self.traffic_map = Map(self.max_q_size)
     self.env = self.traffic_map
     self.save_dir = save_dir
     self.ep_loss = 0.0
 
+  def time_step(self):
+    n_cars = 1
+    for c in range(n_cars):
+      start = choice(border_names)
+      end = choice(border_names)
+      while start == end:
+        end = choice(border_names)
+      self.env.spawn_car(start, end)
 
   def run(self):
 
@@ -240,7 +323,19 @@ class Worker(threading.Thread):
     while Worker.global_episode < args.max_eps:
       print("Epoch: {0}".format(Worker.global_episode))
 
+      #n_cars = Car.get_number_of_cars(Car)
+      #print("{0} cars are still in system".format((self.env).number_of_cars()))
+      #print("Car stats: ", n_cars[0], n_cars[1], self.env.number_of_cars())
+
       current_state = self.env.reset()
+      #print("RESETTING \n")
+      #n_cars = Car.get_number_of_cars(Car)
+      #print("{0} cars are still in system".format((self.env).number_of_cars()))
+      #print("Car stats: ", n_cars[0], n_cars[1], self.env.number_of_cars())
+     # print("{0} cars are still in system".format((self.env).number_of_cars()))
+     # print("TEST")     
+      #print("RESET \n")
+      
       mem.clear()
       ep_reward = 0.
       ep_steps = 0
@@ -249,11 +344,18 @@ class Worker(threading.Thread):
       time_count = 0
       done = False
 
-      n_time_steps = 1000
-      
+      n_time_steps = 3000
+      #print("{0} cars are still in system".format((self.env).number_of_cars()))
       for t in range(0, n_time_steps):
+       # print("Time step: ", t)
 
-        #sample action based on current model and update environment
+
+        
+
+       # self.time_step()
+
+        #if t % 1 == 0:  # update traffic lights once every 10 time steps
+          #print("TEST")
         logits, _ = self.local_model(
 
             tf.convert_to_tensor(current_state[None, :],
@@ -261,10 +363,12 @@ class Worker(threading.Thread):
         probs = tf.nn.softmax(logits)
 
         action = np.random.choice(self.action_size, p=probs.numpy()[0])
+       # print("ACTION: ", action)
         new_state, reward, done, _ = self.env.step(action,t)
+      # print("REWARD: ", reward)
 
         ep_reward += reward
-    
+     # print("{0} cars are still in system".format((self.env).number_of_cars()))
         mem.store(current_state, action, reward)
 
         if time_count == args.update_freq or done:
@@ -287,6 +391,11 @@ class Worker(threading.Thread):
           mem.clear()
           time_count = 0
           
+        #else:
+        #  self.env.step(action, t)
+
+
+        #if done:  # done and print information
         ep_steps += 1
 
         time_count += 1
@@ -297,7 +406,7 @@ class Worker(threading.Thread):
         record(Worker.global_episode, ep_reward, self.worker_idx,
                Worker.global_moving_average_reward, self.result_queue,
                self.ep_loss, ep_steps)
-      #Use lock to save our model and to print to prevent data races.
+      # We must use a lock to save our model and to print to prevent data races.
       if ep_reward > Worker.best_score:
         with Worker.save_lock:
           print("Saving best model to {}, "
@@ -309,8 +418,11 @@ class Worker(threading.Thread):
           Worker.best_score = ep_reward      
       Worker.global_episode += 1
       
-    self.result_queue.put(None)
+     # print("Car stats: ", n_cars[0], n_cars[1], self.env.number_of_cars())
+      #print("{0} cars have disappeared".format(n_cars[0] - n_cars[1] - self.env.number_of_cars()))
+      
 
+    self.result_queue.put(None)
 
   def compute_loss(self,
                    done,
@@ -358,5 +470,4 @@ if __name__ == '__main__':
   if args.train:
     master.train()
   else:
-    print("Please use the --train option.")
-    sys.exit()
+    master.play()

@@ -4,7 +4,6 @@ from map import Map
 from car import Car
 from paths import path_dict, border_names
 from tqdm import tqdm
-from global_traffic_light_combinations import combinations
 
 
 def main(argv):
@@ -12,14 +11,14 @@ def main(argv):
 	max_q_size = 50
 	traffic_map = Map(max_q_size)
 
-	n_time_steps = 10000
+	n_time_steps = 1000
 
 	for t in tqdm(range(0, n_time_steps)):
 
 		time_step(traffic_map)
 
 		if t % 10 == 0:  # update traffic lights once every 10 time steps
-			traffic_map.update_traffic_lights(choice(combinations))
+			traffic_map.update_traffic_lights()
 		traffic_map.update_cars(t)
 
 	traffic_map.display_map()

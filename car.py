@@ -15,6 +15,7 @@ class Car:
 		self.dest_x = destination[0]
 		self.dest_y = destination[1]
 
+		# self.initial_path = path
 		self.total_moves = 0
 		self.waiting_time = 0
 		self.distance_between_nodes = 10
@@ -32,6 +33,7 @@ class Car:
 		Car.removed_cars = 0
 
 	def get_directions(self, x, y):
+		#self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
 		directions = []
 		if x > self.dest_x:
 			directions.append(3)
@@ -50,8 +52,12 @@ class Car:
 			directions = [b, a]
 		return directions
 
+	# def get_last_move(self):
+	# 	return self.last_move
 	def set_last_move(self, time_step):
 			self.last_move = time_step  # store the last time a car has moved so it won't move until next time step
+
+
 
 	def put_direction_back(self, direction):
 		self.path_q.append(direction)

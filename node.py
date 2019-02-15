@@ -22,6 +22,7 @@ class Node:
 		return self.type
 
 	def transfer_car(self, origin, car):
+		# print("movement from {0} to {1}".format(origin.name, self.name))
 		if self.type == "intersection":
 			return self.push_to_queue(origin, car)
 		if self.type == "border":
